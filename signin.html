@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body onload="loadDarkMode()">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo"><a href="index.html">Read Mind</a></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="signup.html">Sign Up</a></li>
+        </ul>
+        <button id="darkModeToggle">🌙 Dark Mode</button>
+    </nav>
+
+    <!-- Sign In Form -->
+    <div class="form-container">
+        <h2>Sign In</h2>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="signIn()">Sign In</button>
+
+        <p>Or sign in with:</p>
+        <button class="google-btn" onclick="socialSignIn('Google')">Sign in with Google</button>
+        <button class="facebook-btn" onclick="socialSignIn('Facebook')">Sign in with Facebook</button>
+        <button class="github-btn" onclick="socialSignIn('GitHub')">Sign in with GitHub</button>
+
+        <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+    </div>
+
+    <script>
+        function signIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const user = JSON.parse(localStorage.getItem("userProfile"));
+
+            if (user && user.email === email && user.password === password) {
+                window.location.href = "books.html";
+            } else {
+                alert("Invalid email or password.");
+            }
+        }
+
+        function socialSignIn(provider) {
+            alert(`Signing in with ${provider} is not yet implemented.`);
+            window.location.href = "books.html";
+        }
+
+        // Dark Mode Toggle
+       
+    // Dark Mode Toggle
+    document.getElementById("darkModeToggle").addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+    });
+
+    function loadDarkMode() {
+        if (localStorage.getItem("darkMode") === "true") {
+            document.body.classList.add("dark-mode");
+        }
+    }
+</script>
+
+
+</body>
+</html>

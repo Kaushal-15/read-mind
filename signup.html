@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><a href="index.html">Read Mind</a></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="signup.html">Sign Up</a></li>
+        </ul>
+        <button id="darkModeToggle">🌙 Dark Mode</button>
+    </nav>
+
+    <div class="form-container">
+        <h2>Sign Up</h2>
+        <input type="text" id="fullName" placeholder="Full Name" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <input type="file" id="profilePic" accept="image/*">
+        <button onclick="signUp()">Sign Up</button>
+
+        <p>Or sign up with:</p>
+        <button class="google-btn" onclick="socialSignUp('Google')">Sign up with Google</button>
+        <button class="facebook-btn" onclick="socialSignUp('Facebook')">Sign up with Facebook</button>
+        <button class="github-btn" onclick="socialSignUp('GitHub')">Sign up with GitHub</button>
+
+        <p>Already have an account? <a href="signin.html">Sign In</a></p>
+    </div>
+
+    <script>
+        function signUp() {
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const profilePic = document.getElementById('profilePic').files[0];
+
+            if (fullName && email && password && profilePic) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    localStorage.setItem("userProfile", JSON.stringify({
+                        name: fullName,
+                        email: email,
+                        password: password,
+                        profilePic: e.target.result
+                    }));
+                    window.location.href = "books.html";
+                };
+                reader.readAsDataURL(profilePic);
+            } else {
+                alert("Please fill all fields and upload a profile picture.");
+            }
+        }
+
+        function socialSignUp(provider) {
+            alert(`Signing up with ${provider} is not yet implemented. This is just a placeholder.`);
+            window.location.href = "books.html"; // Redirect for now
+        }
+      
+    // Dark Mode Toggle
+    document.getElementById("darkModeToggle").addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+    });
+
+    function loadDarkMode() {
+        if (localStorage.getItem("darkMode") === "true") {
+            document.body.classList.add("dark-mode");
+        }
+    }
+</script>
+
+
+</body>
+</html>
