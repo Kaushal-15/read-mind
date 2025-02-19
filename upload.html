@@ -8,7 +8,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
     <style>
-        /* ... (keep your existing styles) ... */
+        .note-marker {
+            cursor: pointer;
+        }
+        .floating-panel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
     </style>
 </head>
 <body class="bg-[#ecd69f] min-h-screen">
@@ -16,28 +29,6 @@
         <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <a href="index.html" class="font-['Pacifico'] text-2xl">ReadMind</a>
-            </div>
-            <div id="contextMenu">
-                <button id="addNote">Add Note</button>
-                <button id="aiSummarize">Summarize with AI</button>
-                <button id="copyText">Copy Text</button>
-            </div>
-        
-            <!-- Floating Notes Panel -->
-            <div id="notesPanel">
-                <h2 class="text-lg font-bold">My Notes</h2>
-                <textarea id="userNotes" placeholder="Write your notes here..."></textarea>
-                <button id="saveNotes">Save Notes</button>
-                <button id="closeNotes">Close</button>
-            </div>
-            <!-- Floating Notes Button -->
-            <button id="open-notes" onclick="toggleNotesPanel()">📝 View Notes</button>
-        
-            <!-- Floating Notes Panel -->
-            <div id="notes-panel" class="floating-panel">
-                <h3>Saved Notes</h3>
-                <div id="notes-list"></div>
-                <button onclick="toggleNotesPanel()">Close</button>
             </div>
             <button id="darkModeToggle" class="w-10 h-10 flex items-center justify-center"><i class="ri-moon-line ri-xl"></i></button>
         </nav>
@@ -56,12 +47,26 @@
         </div>
     </main>
 
-    <!-- AI Summarize Floating Box -->
-    <div id="aiSummarizeBox">
+    <!-- Context Menu -->
+    <div id="contextMenu" class="floating-panel">
+        <button id="addNote">Add Note</button>
+        <button id="aiSummarize">Summarize with AI</button>
+    </div>
+
+    <!-- Notes Panel -->
+    <div id="notesPanel" class="floating-panel">
+        <h2 class="text-lg font-bold">My Notes</h2>
+        <textarea id="userNotes" placeholder="Write your notes here..."></textarea>
+        <button id="saveNotes">Save Notes</button>
+        <button id="closeNotes">Close</button>
+    </div>
+
+    <!-- AI Summarize Panel -->
+    <div id="aiSummarizePanel" class="floating-panel">
         <h2 class="text-lg font-bold">Summarize with AI</h2>
         <textarea id="aiSummarizeText" placeholder="Enter text to summarize..."></textarea>
         <button id="submitSummarize">Submit</button>
-        <button id="closeSummarizeBox">Close</button>
+        <button id="closeSummarizePanel">Close</button>
     </div>
 
     <script>
@@ -71,18 +76,13 @@
         const userNotes = document.getElementById('userNotes');
         const saveNotes = document.getElementById('saveNotes');
         const closeNotes = document.getElementById('closeNotes');
-        const addNote = document.getElementById('addNote');
-        const aiSummarize = document.getElementById('aiSummarize');
-        const copyText = document.getElementById('copyText');
-        const notesList = document.getElementById('notes-list');
-        const notesFloatingPanel = document.getElementById('notes-panel');
-        const aiSummarizeBox = document.getElementById('aiSummarizeBox');
+        const aiSummarizePanel = document.getElementById('aiSummarizePanel');
         const aiSummarizeText = document.getElementById('aiSummarizeText');
         const submitSummarize = document.getElementById('submitSummarize');
-        const closeSummarizeBox = document.getElementById('closeSummarizeBox');
+        const closeSummarizePanel = document.getElementById('closeSummarizePanel');
 
+        let selectedText = "";
         let selectedX = null, selectedY = null;
-        let selectedText = ""; // Store the selected text
 
         const params = new URLSearchParams(window.location.search);
         const bookUrl = params.get('book');
@@ -92,25 +92,27 @@
             bookViewer.src = bookUrl;
         }
 
-        // 🖱️ RIGHT CLICK - SHOW CONTEXT MENU
+        // 🖱️ LEFT CLICK - SHOW CONTEXT MENU
         bookViewer.addEventListener('load', () => {
             const iframeDocument = bookViewer.contentDocument || bookViewer.contentWindow.document;
 
-            iframeDocument.addEventListener('contextmenu', (event) => {
-                event.preventDefault();
-                selectedX = event.clientX;
-                selectedY = event.clientY;
+            iframeDocument.addEventListener('click', (event) => {
+                if (event.button === 0) { // Left click
+                    event.preventDefault();
+                    selectedX = event.clientX;
+                    selectedY = event.clientY;
 
-                // Get the selected text
-                selectedText = iframeDocument.getSelection().toString();
+                    // Get the selected text
+                    selectedText = iframeDocument.getSelection().toString();
 
-                if (selectedText) {
-                    console.log("Selected text:", selectedText);
+                    if (selectedText) {
+                        console.log("Selected text:", selectedText);
 
-                    // Show the context menu at the right-click position
-                    contextMenu.style.top = `${event.pageY}px`;
-                    contextMenu.style.left = `${event.pageX}px`;
-                    contextMenu.style.display = 'block';
+                        // Show the context menu at the click position
+                        contextMenu.style.top = `${event.pageY}px`;
+                        contextMenu.style.left = `${event.pageX}px`;
+                        contextMenu.style.display = 'block';
+                    }
                 }
             });
         });
@@ -123,36 +125,19 @@
         });
 
         // 📝 OPEN NOTES PANEL
-        addNote.addEventListener('click', () => {
+        document.getElementById('addNote').addEventListener('click', () => {
             console.log("Add note clicked");
             contextMenu.style.display = 'none';
             notesPanel.style.display = 'block';
             userNotes.value = selectedText; // Pre-fill the note with selected text
         });
 
-        // 🤖 OPEN AI SUMMARIZE BOX
-        aiSummarize.addEventListener('click', () => {
+        // 🤖 OPEN AI SUMMARIZE PANEL
+        document.getElementById('aiSummarize').addEventListener('click', () => {
             console.log("AI Summarize clicked");
             contextMenu.style.display = 'none';
-            aiSummarizeBox.style.display = 'block';
+            aiSummarizePanel.style.display = 'block';
             aiSummarizeText.value = selectedText; // Pre-fill the AI summarize box with selected text
-        });
-
-        // 📋 COPY TEXT TO CLIPBOARD
-        copyText.addEventListener('click', () => {
-            if (selectedText) {
-                navigator.clipboard.writeText(selectedText)
-                    .then(() => {
-                        alert("Text copied to clipboard!");
-                    })
-                    .catch((err) => {
-                        console.error("Failed to copy text:", err);
-                        alert("Failed to copy text. Please try again.");
-                    });
-            } else {
-                alert("No text selected to copy.");
-            }
-            contextMenu.style.display = 'none';
         });
 
         // 💾 SAVE NOTE
@@ -181,9 +166,6 @@
 
             alert("Note saved successfully!");
             notesPanel.style.display = 'none';
-
-            // 🔹 Refresh notes panel after saving
-            displayNotes();
         });
 
         // ❌ CLOSE NOTES PANEL
@@ -191,9 +173,9 @@
             notesPanel.style.display = 'none';
         });
 
-        // ❌ CLOSE AI SUMMARIZE BOX
-        closeSummarizeBox.addEventListener('click', () => {
-            aiSummarizeBox.style.display = 'none';
+        // ❌ CLOSE AI SUMMARIZE PANEL
+        closeSummarizePanel.addEventListener('click', () => {
+            aiSummarizePanel.style.display = 'none';
         });
 
         // 🔹 ADD NOTE MARKER
@@ -213,55 +195,6 @@
             });
         }
 
-        // 🔹 DISPLAY NOTES IN FLOATING PANEL
-        function displayNotes() {
-            notesList.innerHTML = "";  
-            let notes = getSavedNotes();
-
-            console.log("Loaded notes:", notes);  // Debugging
-
-            if (notes.length === 0) {
-                notesList.innerHTML = "<p>No notes saved yet.</p>";
-                return;
-            }
-
-            notes.forEach((note, index) => {
-                const noteItem = document.createElement("div");
-                noteItem.className = "note-item";
-                noteItem.innerHTML = `
-                    <p contenteditable="true" onblur="editNote(${index}, this)">${note.content}</p>
-                    <button onclick="selectNote(${note.x}, ${note.y})">📍 Select</button>
-                    <button onclick="deleteNote(${index})">🗑️ Delete</button>
-                `;
-                notesList.appendChild(noteItem);
-            });
-        }
-
-        // ✏️ EDIT NOTE
-        function editNote(index, element) {
-            let notes = getSavedNotes();
-            notes[index].content = element.innerText.trim();
-            localStorage.setItem(notesKey, JSON.stringify(notes));  // Save edited note
-        }
-
-        // 🗑️ DELETE NOTE
-        function deleteNote(index) {
-            let notes = getSavedNotes();
-            notes.splice(index, 1);  // Remove note from array
-            localStorage.setItem(notesKey, JSON.stringify(notes));
-            displayNotes();  // Refresh the UI
-        }
-
-        // 📍 SELECT NOTE POSITION IN VIEWER
-        function selectNote(x, y) {
-            bookViewer.scrollTo({ top: y, left: x, behavior: 'smooth' });
-        }
-
-        // 📝 TOGGLE NOTES PANEL
-        function toggleNotesPanel() {
-            notesFloatingPanel.style.display = notesFloatingPanel.style.display === "block" ? "none" : "block";
-        }
-
         // 🔄 LOAD SAVED NOTES FROM STORAGE
         function getSavedNotes() {
             const storedNotes = localStorage.getItem(notesKey);
@@ -273,11 +206,6 @@
                 return [];
             }
         }
-
-        // 🔄 LOAD NOTES ON PAGE LOAD
-        window.onload = function() {
-            displayNotes();
-        };
 
         // 🤖 SUBMIT AI SUMMARIZE REQUEST
         submitSummarize.addEventListener('click', async () => {
