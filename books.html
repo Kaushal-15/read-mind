@@ -3,95 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReadMind - Your Smart Book Companion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+    <title>Books Library</title>
     <style>
-        .dark { background-color: rgba(0, 0, 0, 0.514); color: #ecd69f; }
-        .dark .bg-white { background-color: #ecd69f; color: rgba(0, 0, 0, 0.514); }
-        .dark .text-gray-600 { color: rgba(0, 0, 0, 0.514); }
-        .book-progress::-webkit-progress-bar { background-color: #f3f4f6; border-radius: 9999px; }
-        .book-progress::-webkit-progress-value { background-color: #10b981; border-radius: 9999px; }
+        /* General Styles */
+        body {
+            background-color: #ecd69f;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background-color: #222;
+            color: white;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: black;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+
+        .navbar .dark-mode-toggle {
+            background: none;
+            border: 1px solid white;
+            color: white;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .navbar .dark-mode-toggle:hover {
+            background: grey;
+        }
+
+        /* Book List */
+        .books-container {
+            margin-top: 80px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .book {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            width: 250px;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .book:hover {
+            transform: scale(1.05);
+        }
+
+        .book img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .book h3 {
+            margin: 10px 0;
+        }
+
+        .book button {
+            background: black;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .book button:hover {
+            background: grey;
+        }
+
     </style>
 </head>
-<body class="bg-primary min-h-screen">
-    <header class="sticky top-0 z-50 bg-[#ecd69f] shadow-md">
-        <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <div class="w-10 h-10 flex items-center justify-center"><i class="ri-book-line ri-2x"></i></div>
-                <a href="index.htm" class="font-['Pacifico'] text-2xl">ReadMind</a>
-            </div>
-            <div class="flex items-center space-x-8">
-                <a href="index.htm" class="hover:text-gray-600">Home</a>
-                <a href="index.htm#library" class="hover:text-gray-600">Library</a>
-                <a href="index.htm#bookmarks" class="hover:text-gray-600">Bookmarks</a>
-            </div>
-        </nav>
-    </header>
+<body>
 
-    <main class="container mx-auto px-4 pt-8">
-        <div class="grid grid-cols-12 gap-8">
-            <div class="col-span-8">
-                <div class="bg-white rounded-lg p-8 shadow-lg">
-                    <div class="flex justify-between mb-6">
-                        <h2 class="text-2xl font-bold">Library</h2>
-                        <div class="relative">
-                            <input type="text" placeholder="Search books..." class="pl-10 pr-4 py-2 border rounded-lg focus:ring-green-500">
-                            <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-4 gap-6">
-                        <div class="book-card">
-                            <img src="https://public.readdy.ai/ai/img_res/e22bba7bfc6e202ec3029f87b1d1fbb8.jpg" class="w-full h-48 object-cover rounded-t-lg">
-                            <div class="p-4 border border-t-0 rounded-b-lg">
-                                <h3 class="font-semibold">The Silent Echo</h3>
-                                <button class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Read Now</button>
-                            </div>
-                        </div>
-                        <div class="book-card">
-                            <img src="https://public.readdy.ai/ai/img_res/7635007b99e59a70bd825b4fa3807d65.jpg" class="w-full h-48 object-cover rounded-t-lg">
-                            <div class="p-4 border border-t-0 rounded-b-lg">
-                                <h3 class="font-semibold">Quantum Reality</h3>
-                                <button class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Read Now</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg p-8 shadow-lg mt-8">
-                    <h2 class="text-2xl font-bold mb-4">Upload New Book</h2>
-                    <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                        <i class="ri-upload-cloud-line ri-3x text-gray-400"></i>
-                        <p class="text-gray-600 mb-4">Drag and drop a book file, or click to browse</p>
-                        <input type="file" id="fileInput" class="hidden" accept=".pdf,.epub,.mobi">
-                        <button onclick="document.getElementById('fileInput').click()" class="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600">Browse Files</button>
-                        <p id="fileName" class="mt-4 text-sm text-gray-500"></p>
-                    </div>
-                </div>
-            </div>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div>
+            <a href="index.html">🏠 Home</a>
+            <a href="signin.html">Sign Up</a>
+            <a href="login.html">Login</a>
         </div>
-             
-        <div class="bg-white rounded-lg p-8 shadow-lg mt-8">
-            <h2 class="text-2xl font-bold mb-4">Uploaded Books</h2>
-            <ul id="uploadedBooks" class="space-y-2"></ul>
+        <button id="darkModeToggle" class="dark-mode-toggle">🌙 Dark Mode</button>
+    </nav>
+
+    <h2>📚 Available Books</h2>
+    <div class="books-container">
+        <!-- Book 1 -->
+        <div class="book">
+            <img src="covers/book1.jpg" alt="Book 1 Cover">
+            <h3>The Great Book</h3>
+            <p>Author: John Doe</p>
+            <button onclick="openBook('books/TheGreatBook.pdf')">Read Now</button>
         </div>
-    </main>
+
+        <!-- Book 2 -->
+        <div class="book">
+            <img src="covers/book2.jpg" alt="Book 2 Cover">
+            <h3>Science of Mind</h3>
+            <p>Author: Jane Smith</p>
+            <button onclick="openBook('books/ScienceOfMind.pdf')">Read Now</button>
+        </div>
+
+        <!-- Book 3 -->
+        <div class="book">
+            <img src="covers/book3.jpg" alt="Book 3 Cover">
+            <h3>History of Art</h3>
+            <p>Author: Michael Lee</p>
+            <button onclick="openBook('books/HistoryOfArt.pdf')">Read Now</button>
+        </div>
+
+        <!-- Book 4 -->
+        <div class="book">
+            <img src="covers/book4.jpg" alt="Book 4 Cover">
+            <h3>Programming Basics</h3>
+            <p>Author: Alice Brown</p>
+            <button onclick="openBook('books/ProgrammingBasics.pdf')">Read Now</button>
+        </div>
+    </div>
 
     <script>
-        document.getElementById('fileInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                document.getElementById('fileName').textContent = `Selected: ${file.name}`;
-                const uploadedList = document.getElementById('uploadedBooks');
-                const listItem = document.createElement('li');
-                listItem.classList.add('flex', 'justify-between', 'items-center', 'p-2', 'border', 'rounded');
-                listItem.innerHTML = `
-                    <span>${file.name}</span>
-                    <a href="upload.html?book=${encodeURIComponent(file.name)}" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Read Now</a>
-                `;
-                uploadedList.appendChild(listItem);
-            }
+        // 🌙 Dark Mode Toggle
+        const darkModeToggle = document.getElementById("darkModeToggle");
+        darkModeToggle.addEventListener("click", () => {
+            document.body.classList.toggle("dark-mode");
+            localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
         });
+
+        // 🌙 Load Dark Mode Preference
+        if (localStorage.getItem("darkMode") === "true") {
+            document.body.classList.add("dark-mode");
+        }
+
+        // 📖 Open Book in upload.html
+        function openBook(bookPath) {
+            window.location.href = `upload.html?book=${encodeURIComponent(bookPath)}`;
+        }
     </script>
+
 </body>
 </html>
