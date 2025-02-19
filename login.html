@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Form</title>
+    <title>Login</title>
     <style>
+        /* General Styles */
         body {
             display: flex;
             justify-content: center;
@@ -12,113 +13,205 @@
             height: 100vh;
             background-color: #ecd69f;
             font-family: Arial, sans-serif;
+            flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        .form {
+
+        /* Dark Mode */
+        body.dark-mode {
+            background-color: #222;
+            color: white;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: black;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+
+        .navbar .dark-mode-toggle {
+            background: none;
+            border: 1px solid white;
+            color: white;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .navbar .dark-mode-toggle:hover {
+            background: grey;
+        }
+
+        /* Form Box */
+        .form-box {
+            max-width: 320px;
+            background: black;
+            color: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            text-align: center;
+            padding: 32px;
+            margin-top: 80px;
+        }
+
+        .title {
+            font-weight: bold;
+            font-size: 1.6rem;
+        }
+
+        .form-container {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            padding: 2em;
-            background-color: #171717;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease-in-out;
+            margin: 1rem 0 0.5rem;
         }
-        .form:hover {
-            transform: scale(1.05);
-        }
-        #heading {
-            text-align: center;
-            color: white;
-            font-size: 1.5em;
-            margin-bottom: 1em;
-        }
-        .field {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background-color: #252525;
-            border-radius: 10px;
-            color: white;
-        }
-        .input-icon {
-            width: 20px;
-            fill: white;
-        }
-        .input-field {
-            background: none;
-            border: none;
+
+        .input {
+            background: white;
+            border: 1px solid #ddd;
             outline: none;
-            width: 100%;
-            color: #d3d3d3;
+            height: 40px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: black;
         }
-        .btn {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 1em;
+
+        .input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
         }
-        button {
-            flex: 1;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
+
+        .form button {
+            background-color: rgba(0, 0, 0, 0.514);
             color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 10px 16px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background-color 0.3s ease;
         }
-        .login-btn {
-            background-color: grey ;
+
+        .form button:hover {
+            background-color: rgba(50, 50, 50, 0.8);
         }
-        .login-btn:hover {
-            background-color: black;
+
+        .form-section {
+            padding: 16px;
+            font-size: 0.85rem;
+            background-color: grey;
+            box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.08);
         }
-        .forgot-btn {
-            margin-top: 10px;
-            background-color: #d7dbdd;
-            width: 100%;
+
+        .form-section a {
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s ease;
         }
-        .forgot-btn:hover {
-            background-color:#d7dbdd;
+
+        .form-section a:hover {
+            text-decoration: underline;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: white;
+        }
+
+        body.dark-mode .form-box {
+            background: #333;
+        }
+
+        body.dark-mode .input {
+            background: #444;
+            color: white;
+            border: 1px solid #777;
+        }
+
+        body.dark-mode .form-section {
+            background-color: #444;
         }
     </style>
 </head>
 <body>
-    <form class="form">
-        <p id="heading">Login</p>
-        <div class="field">
-            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                <path d="M13.106 7.222c0-2.967-2.249-5.032-5.482-5.032-3.35 0-5.646 2.318-5.646 5.702 0 3.493 2.235 5.708 5.762 5.708.862 0 1.689-.123 2.304-.335v-.862c-.43.199-1.354.328-2.29.328-2.926 0-4.813-1.88-4.813-4.798 0-2.844 1.921-4.881 4.594-4.881 2.735 0 4.608 1.688 4.608 4.156 0 1.682-.554 2.769-1.416 2.769-.492 0-.772-.28-.772-.76V5.206H8.923v.834h-.11c-.266-.595-.881-.964-1.6-.964-1.4 0-2.378 1.162-2.378 2.823 0 1.737.957 2.906 2.379 2.906.8 0 1.415-.39 1.709-1.087h.11c.081.67.703 1.148 1.503 1.148 1.572 0 2.57-1.415 2.57-3.643z"></path>
-            </svg>
-            <input type="text" class="input-field" placeholder="Username" required>
-        </div>
-        <div class="field">
-            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
-            </svg>
-            <input type="password" class="input-field" placeholder="Password" required>
-        </div>
-        <div class="btn">
-            <button type="submit" class="login-btn">Login</button>
-        </div>
-        <button type="button" class="forgot-btn">Forgot Password</button>
-    </form>
-<script>
-    document.querySelector('.form').addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent form submission
 
-        const email = document.querySelector('input[type="text"]').value;
-        const password = document.querySelector('input[type="password"]').value;
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div>
+            <a href="index.html">🏠 Home</a>
+            <a href="signin.html">Sign Up</a>
+        </div>
+        <button id="darkModeToggle" class="dark-mode-toggle">🌙 Dark Mode</button>
+    </nav>
 
-        // Retrieve stored user data
-        const storedUser = JSON.parse(localStorage.getItem("user"));
+    <!-- Login Form -->
+    <div class="form-box">
+        <form class="form" id="loginForm">
+            <span class="title">Login</span>
+            <div class="form-container">
+                <input type="text" id="email" class="input" placeholder="Email" required>
+                <input type="password" id="password" class="input" placeholder="Password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <div class="form-section">
+            <p>Don't have an account? <a href="signin.html">Sign Up</a></p>
+        </div>
+    </div>
 
-        if (storedUser && storedUser.email === email && storedUser.password === password) {
-            alert("Login successful! Redirecting to books...");
-            window.location.href = "books.html";
-        } else {
-            alert("Invalid credentials! Please try again.");
+    <script>
+        // 🌙 Dark Mode Toggle
+        const darkModeToggle = document.getElementById("darkModeToggle");
+        darkModeToggle.addEventListener("click", () => {
+            document.body.classList.toggle("dark-mode");
+            localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+        });
+
+        // 🌙 Load Dark Mode Preference
+        if (localStorage.getItem("darkMode") === "true") {
+            document.body.classList.add("dark-mode");
         }
-    });
-</script>
+
+        // 🚀 Handle Login Form Submission
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            // Retrieve stored user data
+            const storedUser = JSON.parse(localStorage.getItem("user"));
+
+            if (storedUser && storedUser.email === email && storedUser.password === password) {
+                alert("Login successful! Redirecting to books...");
+                window.location.href = "books.html";
+            } else {
+                alert("Invalid credentials! Please try again.");
+            }
+        });
+    </script>
+
 </body>
 </html>
