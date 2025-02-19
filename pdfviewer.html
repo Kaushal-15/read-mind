@@ -24,21 +24,6 @@
             display: none;
             z-index: 1002;
         }
-
-        /* Notes Panel */
-        #notesPanel {
-            position: fixed;
-            display: none;
-            width: 300px;
-            background: white;
-            padding: 15px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-            border-radius: 5px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1001;
-        }
     </style>
 </head>
 <body class="bg-[#ecd69f] min-h-screen">
@@ -76,13 +61,6 @@
         <iframe id="pdfViewer" src="" width="100%" height="800px" style="border: none;"></iframe>
     </main>
 
-    <!-- Notes Panel -->
-    <div id="notesPanel">
-        <textarea id="noteText" placeholder="Write your note here..."></textarea>
-        <button id="saveNote">Save Note</button>
-        <button id="closeNotes">Close</button>
-    </div>
-
     <script>
         // 🌙 Dark Mode Toggle
         document.getElementById('darkModeToggle').addEventListener('click', () => {
@@ -90,7 +68,7 @@
             localStorage.setItem('darkMode', document.body.classList.contains('dark'));
         });
 
-        // 🌙 Load Dark Mode on Page Load
+        // 🌙 Load Dark Mode
         function loadDarkMode() {
             if (localStorage.getItem('darkMode') === 'true') {
                 document.body.classList.add('dark');
@@ -123,13 +101,8 @@
             if (event.origin !== window.location.origin) return;
 
             const { word, definition } = event.data;
-
-            // ✅ Ensure the word and definition are valid before saving
             if (word && definition && word.trim() !== "" && definition.trim() !== "") {
-                const saveNote = confirm(`Save the definition of "${word}" as a note?`);
-                if (saveNote) {
-                    alert('Note saved!');
-                }
+                alert(`AI Definition of "${word}": ${definition}`);
             }
         });
 
@@ -137,7 +110,6 @@
         document.getElementById('pdfViewer').addEventListener('mouseup', () => {
             const selectedText = window.getSelection().toString().trim();
             if (selectedText) {
-                // Send the selected text to `dict.html` inside the iframe
                 document.getElementById('dictIframe').contentWindow.postMessage({ word: selectedText }, '*');
             }
         });
