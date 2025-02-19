@@ -1,218 +1,206 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Library - ReadMind</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
     <style>
-        /* General Styles */
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #ecd69f;
-            font-family: Arial, sans-serif;
-            flex-direction: column;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+        .dark { background-color: rgba(0, 0, 0, 0.514); color: #ecd69f; }
+        .dark .bg-white { background-color: #ecd69f; color: rgba(0, 0, 0, 0.514); }
 
-        /* Dark Mode */
-        body.dark-mode {
-            background-color: #222;
-            color: white;
-        }
-
-        /* Navbar Styles */
-        .navbar {
+        /* Floating Notes Panel */
+        #notesPanel {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: black;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            font-size: 18px;
-            margin-right: 20px;
-            font-weight: bold;
-        }
-
-        .navbar .dark-mode-toggle {
-            background: none;
-            border: 1px solid white;
-            color: white;
-            padding: 6px 12px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background 0.3s ease;
-        }
-
-        .navbar .dark-mode-toggle:hover {
-            background: grey;
-        }
-
-        /* Form Box */
-        .form-box {
-            max-width: 320px;
-            background: black;
-            color: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            text-align: center;
-            padding: 32px;
-            margin-top: 80px;
-        }
-
-        .title {
-            font-weight: bold;
-            font-size: 1.6rem;
-        }
-
-        .form-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin: 1rem 0 0.5rem;
-        }
-
-        .input {
+            display: none;
+            width: 300px;
             background: white;
-            border: 1px solid #ddd;
-            outline: none;
-            height: 40px;
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-size: 1rem;
-            color: black;
+            padding: 15px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
         }
-
-        .input:focus {
-            border-color: #3498db;
-            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        .dark #notesPanel {
+            background: #222;
+            color: #ecd69f;
         }
-
-        .form button {
-            background-color: rgba(0, 0, 0, 0.514);
+        #notesPanel textarea {
+            width: 100%;
+            height: 150px;
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        #notesPanel button {
+            margin-top: 10px;
+            display: block;
+            width: 100%;
+            padding: 8px;
+            background: green;
             color: white;
             border: none;
-            border-radius: 24px;
-            padding: 10px 16px;
-            font-size: 1rem;
-            font-weight: 600;
+            border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+        }
+        #notesPanel button:hover {
+            background: darkgreen;
         }
 
-        .form button:hover {
-            background-color: rgba(50, 50, 50, 0.8);
+        #closeNotes {
+            background: red !important;
+        }
+        #closeNotes:hover {
+            background: darkred !important;
         }
 
-        .form-section {
-            padding: 16px;
-            font-size: 0.85rem;
-            background-color: grey;
-            box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.08);
+        /* Note Marker (AI Icon) */
+        .note-marker {
+            position: absolute;
+            cursor: pointer;
+            z-index: 100;
+            color: #000; /* Icon color */
+        }
+        .note-marker:hover {
+            color: #ff0000; /* Icon color on hover */
         }
 
-        .form-section a {
-            font-weight: bold;
-            color: #fff;
-            text-decoration: none;
-            transition: color 0.3s ease;
+        /* Floating AI Section */
+        .floating-panel {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            width: 300px;
+            background: white;
+            padding: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            display: none;
+            z-index: 1002;
         }
 
-        .form-section a:hover {
-            text-decoration: underline;
+        /* Book Card Styles */
+        .book-card {
+            transition: transform 0.2s;
         }
-
-        /* Dark Mode Styles */
-        body.dark-mode {
-            background-color: #121212;
-            color: white;
-        }
-
-        body.dark-mode .form-box {
-            background: #333;
-        }
-
-        body.dark-mode .input {
-            background: #444;
-            color: white;
-            border: 1px solid #777;
-        }
-
-        body.dark-mode .form-section {
-            background-color: #444;
+        .book-card:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
-<body>
-
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div>
-            <a href="index.html">🏠 Home</a>
-            <a href="signin.html">Sign Up</a>
-        </div>
-        <button id="darkModeToggle" class="dark-mode-toggle">🌙 Dark Mode</button>
-    </nav>
-
-    <!-- Login Form -->
-    <div class="form-box">
-        <form class="form" id="loginForm">
-            <span class="title">Login</span>
-            <div class="form-container">
-                <input type="text" id="email" class="input" placeholder="Email" required>
-                <input type="password" id="password" class="input" placeholder="Password" required>
+<body class="bg-[#ecd69f] min-h-screen">
+    <header class="sticky top-0 z-50 bg-[#ecd69f] shadow-md">
+        <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 flex items-center justify-center"><i class="ri-book-line ri-2x"></i></div>
+                <span class="font-['Pacifico'] text-2xl">ReadMind</span>
             </div>
-            <button type="submit">Login</button>
-        </form>
-        <div class="form-section">
-            <p>Don't have an account? <a href="signin.html">Sign Up</a></p>
-        </div>
+            <div class="flex items-center space-x-8">
+                <a href="index.html" class="hover:text-gray-600">Home</a>
+                <a href="library.html" class="hover:text-gray-600">Library</a>
+                <a href="upload.html" class="hover:text-gray-600">Upload</a>
+            </div>
+            
+            <!-- AI Button -->
+            <button id="aiButton" class="w-10 h-10 flex items-center justify-center">
+                <i class="ri-ai-generate ri-xl"></i>
+            </button>
+
+            <!-- Dark Mode Toggle -->
+            <button id="darkModeToggle" class="w-10 h-10 flex items-center justify-center">
+                <i class="ri-sun-line ri-xl"></i>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Floating AI Section -->
+    <div id="aiFloatingSection" class="floating-panel">
+        <iframe id="dictIframe" src="dict.html" width="100%" height="400px" style="border: none;"></iframe>
     </div>
 
+    <!-- Library Content -->
+    <main class="container mx-auto px-4 pt-8">
+        <h2 class="text-2xl font-bold mb-4">Library</h2>
+
+        <!-- Predefined Books -->
+        <h3 class="text-xl font-semibold mb-2">Predefined Books</h3>
+        <div class="grid grid-cols-4 gap-6 mb-8">
+            <div class="book-card">
+                <img src="https://images-na.ssl-images-amazon.com/images/I/71tbalAHYCL.jpg" class="w-full h-48 object-cover rounded-t-lg">
+                <div class="p-4 border border-t-0 rounded-b-lg">
+                    <h3 class="font-semibold">Atomic Habits</h3>
+                    <button onclick="redirectToUpload('sample.pdf')" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                        Read Now
+                    </button>
+                </div>
+            </div>
+            <div class="book-card">
+                <img src="https://images-na.ssl-images-amazon.com/images/I/81y1g1g1g1L.jpg" class="w-full h-48 object-cover rounded-t-lg">
+                <div class="p-4 border border-t-0 rounded-b-lg">
+                    <h3 class="font-semibold">The Power of Habit</h3>
+                    <button onclick="redirectToUpload()" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                        Read Now
+                    </button>
+                </div>
+            </div>
+            <div class="book-card">
+                <img src="https://images-na.ssl-images-amazon.com/images/I/91b1g1g1g1L.jpg" class="w-full h-48 object-cover rounded-t-lg">
+                <div class="p-4 border border-t-0 rounded-b-lg">
+                    <h3 class="font-semibold">Deep Work</h3>
+                    <button onclick="redirectToUpload()" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                        Read Now
+                    </button>
+                </div>
+            </div>
+            <div class="book-card">
+                <img src="https://images-na.ssl-images-amazon.com/images/I/81g1g1g1g1L.jpg" class="w-full h-48 object-cover rounded-t-lg">
+                <div class="p-4 border border-t-0 rounded-b-lg">
+                    <h3 class="font-semibold">The 7 Habits of Highly Effective People</h3>
+                    <button onclick="redirectToUpload()" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                        Read Now
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Uploaded Books -->
+        <h3 class="text-xl font-semibold mb-2">Your Uploaded Books</h3>
+        <div id="uploadedBooks" class="bg-white rounded-lg p-8 shadow-lg hidden">
+            <h3 class="text-xl font-bold mb-4">Uploaded Books</h3>
+            <div id="bookList" class="space-y-4"></div>
+        </div>
+    </main>
+
     <script>
-        // 🌙 Dark Mode Toggle
-        const darkModeToggle = document.getElementById("darkModeToggle");
-        darkModeToggle.addEventListener("click", () => {
-            document.body.classList.toggle("dark-mode");
-            localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+        // Dark Mode Toggle
+        document.getElementById('darkModeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
         });
 
-        // 🌙 Load Dark Mode Preference
-        if (localStorage.getItem("darkMode") === "true") {
-            document.body.classList.add("dark-mode");
+        // Load Dark Mode
+        function loadDarkMode() {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark');
+            }
         }
 
-        // 🚀 Handle Login Form Submission
-        document.getElementById("loginForm").addEventListener("submit", function(event) {
-            event.preventDefault(); // Prevent form submission
+        // Redirect to Upload Page
+        function redirectToUpload() {
+            window.location.href = 'upload.html';
+        }
+        function redirectToUpload(pdfUrl) {
+    window.location.href = `pdfviewer.html?pdf=${encodeURIComponent(pdfUrl)}`;
+}
 
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-
-            // Retrieve stored user data
-            const storedUser = JSON.parse(localStorage.getItem("user"));
-
-            if (storedUser && storedUser.email === email && storedUser.password === password) {
-                alert("Login successful! Redirecting to books...");
-                window.location.href = "books.html";
-            } else {
-                alert("Invalid credentials! Please try again.");
-            }
+        // Load Dark Mode on Page Load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDarkMode();
         });
     </script>
-
 </body>
 </html>
