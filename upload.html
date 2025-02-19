@@ -9,33 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
     <style>
-        body {
-            background-color: #ecd69f;
-        }
-        .pdf-container {
-            position: relative;
-            width: 100%;
-            height: 90vh;
-            overflow: auto;
-            border: 1px solid #ccc;
-            background: white;
-        }
-        .note-marker {
-            cursor: pointer;
-            position: absolute;
-            font-size: 20px;
-            color: blue;
-        }
+        body { background-color: #ecd69f; }
+        .pdf-container { position: relative; width: 100%; height: 90vh; overflow: auto; border: 1px solid #ccc; background: white; }
+        .note-marker { cursor: pointer; position: absolute; font-size: 20px; color: blue; }
         .floating-panel {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
+            display: none; position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); background: white;
+            padding: 20px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); z-index: 1000;
         }
     </style>
 </head>
@@ -64,15 +44,27 @@
         <button id="closeNotes" class="bg-red-500 text-white px-4 py-2 rounded">Close</button>
     </div>
 
+    <!-- AI Summarize Panel -->
+    <div id="aiSummarizePanel" class="floating-panel">
+        <h2 class="text-lg font-bold">Summarize with AI</h2>
+        <textarea id="aiSummarizeText" placeholder="Enter text to summarize..." class="w-full p-2 border"></textarea>
+        <button id="submitSummarize" class="bg-blue-500 text-white px-4 py-2 rounded">Summarize</button>
+        <button id="closeSummarizePanel" class="bg-red-500 text-white px-4 py-2 rounded">Close</button>
+    </div>
+
     <script>
         const pdfViewer = document.getElementById('pdfViewer');
         const notesPanel = document.getElementById('notesPanel');
         const userNotes = document.getElementById('userNotes');
         const saveNotes = document.getElementById('saveNotes');
         const closeNotes = document.getElementById('closeNotes');
+        const aiSummarizePanel = document.getElementById('aiSummarizePanel');
+        const aiSummarizeText = document.getElementById('aiSummarizeText');
+        const submitSummarize = document.getElementById('submitSummarize');
+        const closeSummarizePanel = document.getElementById('closeSummarizePanel');
 
+        let selectedText = "";
         let selectedX = null, selectedY = null;
-        let pageNumber = 1;
         let pdfDoc = null;
         const params = new URLSearchParams(window.location.search);
         const pdfUrl = params.get('pdf');
@@ -82,14 +74,12 @@
             loadPDF(pdfUrl);
         }
 
-        // 🔄 Load PDF
         async function loadPDF(url) {
             const loadingTask = pdfjsLib.getDocument(url);
             pdfDoc = await loadingTask.promise;
-            renderPage(pageNumber);
+            renderPage(1);
         }
 
-        // 📖 Render PDF Page
         async function renderPage(num) {
             const canvas = document.createElement("canvas");
             pdfViewer.innerHTML = "";
@@ -104,19 +94,24 @@
 
             pdfViewer.style.height = `${canvas.height}px`;
 
-            // 🟢 Load Notes on Page
             loadSavedNotes();
         }
 
-        // 🎯 Right-click to Add Notes
         pdfViewer.addEventListener('contextmenu', (event) => {
             event.preventDefault();
             selectedX = event.offsetX;
             selectedY = event.offsetY;
-            notesPanel.style.display = 'block';
+
+            let textSelection = window.getSelection().toString().trim();
+            if (textSelection) {
+                selectedText = textSelection;
+                aiSummarizePanel.style.display = 'block';
+                aiSummarizeText.value = selectedText;
+            } else {
+                notesPanel.style.display = 'block';
+            }
         });
 
-        // 💾 Save Notes to Local Storage
         saveNotes.addEventListener('click', () => {
             const noteContent = userNotes.value.trim();
             if (!noteContent) {
@@ -134,19 +129,20 @@
             userNotes.value = "";
         });
 
-        // ❌ Close Notes Panel
         closeNotes.addEventListener('click', () => {
             notesPanel.style.display = 'none';
         });
 
-        // 📝 Add Note Marker on PDF
+        closeSummarizePanel.addEventListener('click', () => {
+            aiSummarizePanel.style.display = 'none';
+        });
+
         function addNoteMarker(x, y, content) {
             const marker = document.createElement('i');
             marker.className = "ri-bookmark-line note-marker";
             marker.style.top = `${y}px`;
             marker.style.left = `${x}px`;
             marker.title = content;
-
             pdfViewer.appendChild(marker);
 
             marker.addEventListener('click', () => {
@@ -154,13 +150,11 @@
             });
         }
 
-        // 🔄 Load Saved Notes
         function loadSavedNotes() {
             let notes = getSavedNotes();
             notes.forEach(note => addNoteMarker(note.x, note.y, note.content));
         }
 
-        // 📂 Get Notes from Storage
         function getSavedNotes() {
             const storedNotes = localStorage.getItem(notesKey);
             try {
@@ -171,6 +165,27 @@
                 return [];
             }
         }
+
+        submitSummarize.addEventListener('click', async () => {
+            const text = aiSummarizeText.value.trim();
+            if (!text) {
+                alert("Enter text to summarize.");
+                return;
+            }
+
+            try {
+                const response = await fetch('https://api.gemini.com/v1/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer YOUR_GEMINI_API_KEY' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+                alert(`AI Summary: ${data.summary}`);
+            } catch (error) {
+                alert("Failed to summarize text.");
+            }
+        });
     </script>
 </body>
 </html>
