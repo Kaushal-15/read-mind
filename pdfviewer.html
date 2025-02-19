@@ -191,9 +191,16 @@
 
         // 🧠 Get AI Response (Simulated for now)
         async function getAIResponse(query) {
+            // Simulate a meaningful response
+            const responses = [
+                `Here's a detailed explanation for: "${query}"`,
+                `Interesting question! Here's what I think: "${query}" is related to...`,
+                `Based on my knowledge, "${query}" can be understood as...`,
+                `Let me break it down for you: "${query}" means...`,
+            ];
             return new Promise((resolve) => {
                 setTimeout(() => {
-                    resolve(`AI generated response for: "${query}"`);
+                    resolve(responses[Math.floor(Math.random() * responses.length)]);
                 }, 1000);
             });
         }
