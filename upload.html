@@ -80,6 +80,7 @@
         const closeSummarizeBox = document.getElementById('closeSummarizeBox');
 
         let selectedX = null, selectedY = null;
+        let selectedText = ""; // Store the selected text
 
         const params = new URLSearchParams(window.location.search);
         const bookUrl = params.get('book');
@@ -90,16 +91,26 @@
         }
 
         // 🖱️ RIGHT CLICK - SHOW CONTEXT MENU
-        bookViewer.addEventListener('contextmenu', (event) => {
-            event.preventDefault();
-            selectedX = event.clientX;
-            selectedY = event.clientY;
+        bookViewer.addEventListener('load', () => {
+            const iframeDocument = bookViewer.contentDocument || bookViewer.contentWindow.document;
 
-            console.log("Right-click position:", selectedX, selectedY);
+            iframeDocument.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                selectedX = event.clientX;
+                selectedY = event.clientY;
 
-            contextMenu.style.top = `${selectedY}px`;
-            contextMenu.style.left = `${selectedX}px`;
-            contextMenu.style.display = 'block';
+                // Get the selected text
+                selectedText = iframeDocument.getSelection().toString();
+
+                if (selectedText) {
+                    console.log("Selected text:", selectedText);
+
+                    // Show the context menu at the right-click position
+                    contextMenu.style.top = `${event.pageY}px`;
+                    contextMenu.style.left = `${event.pageX}px`;
+                    contextMenu.style.display = 'block';
+                }
+            });
         });
 
         // Hide context menu when clicking outside
@@ -114,7 +125,7 @@
             console.log("Add note clicked");
             contextMenu.style.display = 'none';
             notesPanel.style.display = 'block';
-            userNotes.value = "";
+            userNotes.value = selectedText; // Pre-fill the note with selected text
         });
 
         // 🤖 OPEN AI SUMMARIZE BOX
@@ -122,7 +133,7 @@
             console.log("AI Summarize clicked");
             contextMenu.style.display = 'none';
             aiSummarizeBox.style.display = 'block';
-            aiSummarizeText.value = "";
+            aiSummarizeText.value = selectedText; // Pre-fill the AI summarize box with selected text
         });
 
         // 💾 SAVE NOTE
