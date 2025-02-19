@@ -171,16 +171,22 @@
             if (pdfUrl) {
                 loadPDF(pdfUrl);
             }
-            window.addEventListener('message', (event) => {
-    if (event.origin !== window.location.origin) return;
+        });
 
-    const { word, definition } = event.data;
-    const saveNote = confirm(`Save the definition of "${word}" as a note?`);
-    if (saveNote) {
-        // Save note logic here (e.g., store in localStorage or send to server)
-        alert('Note saved!');
-    }
-});
+        // 🛠 FIX: Handle messages only for valid words
+        window.addEventListener('message', (event) => {
+            if (event.origin !== window.location.origin) return;
+
+            const { word, definition } = event.data;
+
+            // Ensure the word and definition are valid
+            if (word && definition && word.trim() !== "" && definition.trim() !== "") {
+                const saveNote = confirm(`Save the definition of "${word}" as a note?`);
+                if (saveNote) {
+                    // Save note logic here (e.g., store in localStorage or send to server)
+                    alert('Note saved!');
+                }
+            }
         });
     </script>
 </body>
