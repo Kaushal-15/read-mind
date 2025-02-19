@@ -184,6 +184,9 @@
             messageDiv.textContent = text;
             messageDiv.classList.add("message", className);
             document.getElementById("chat-box").appendChild(messageDiv);
+            
+            // Auto-scroll chat box
+            document.getElementById("chat-box").scrollTop = document.getElementById("chat-box").scrollHeight;
         }
 
         // 🧠 Get AI Response (Simulated for now)
