@@ -11,12 +11,12 @@
         .dark { background-color: rgba(0, 0, 0, 0.514); color: #ecd69f; }
         .dark .bg-white { background-color: #ecd69f; color: rgba(0, 0, 0, 0.514); }
 
-        /* Floating AI Section */
+        /* Floating AI Chat */
         .floating-panel {
             position: fixed;
             top: 50px;
             right: 20px;
-            width: 300px;
+            width: 350px;
             background: white;
             padding: 10px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
@@ -55,6 +55,29 @@
             align-self: flex-start;
         }
 
+        /* Input Section */
+        #ai-input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        #ai-user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #ai-send-btn {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
         /* AI Note Marker */
         .note-marker {
             position: absolute;
@@ -89,10 +112,14 @@
         </nav>
     </header>
 
-    <!-- Floating AI Section -->
+    <!-- Floating AI Chat -->
     <div id="aiFloatingSection" class="floating-panel">
         <h2 class="text-lg font-bold">AI Chat</h2>
         <div id="chat-box"></div>
+        <div id="ai-input-container">
+            <input type="text" id="ai-user-input" placeholder="Ask AI a question...">
+            <button id="ai-send-btn">Send</button>
+        </div>
     </div>
 
     <!-- PDF Viewer -->
@@ -127,21 +154,28 @@
             aiPanel.style.display = aiPanel.style.display === 'none' ? 'block' : 'none';
         });
 
-        // 📩 Receive AI Response and Show in Chat
-        window.addEventListener('message', (event) => {
-            if (event.origin !== window.location.origin) return;
-            const { word, definition } = event.data;
+        // ✉️ Handle AI Chat Send Button
+        document.getElementById("ai-send-btn").addEventListener("click", async () => {
+            const userText = document.getElementById("ai-user-input").value.trim();
+            if (!userText) return;
 
-            if (word && definition) {
-                appendMessage(`User: ${word}`, "user-message");
-                appendMessage(`AI: ${definition}`, "bot-message");
+            // Show User Query in Chat
+            appendMessage(`User: ${userText}`, "user-message");
 
-                // Confirm if user wants to save the AI note
-                const saveNote = confirm(`Save AI response for "${word}" in the book?`);
-                if (saveNote) {
-                    addAINoteMarker(word, definition);
-                }
+            // Get AI Response
+            const aiResponse = await getAIResponse(userText);
+
+            // Show AI Response in Chat
+            appendMessage(`AI: ${aiResponse}`, "bot-message");
+
+            // Confirm if user wants to save the AI response
+            const saveNote = confirm(`Save AI response for "${userText}" in the book?`);
+            if (saveNote) {
+                addAINoteMarker(userText, aiResponse);
             }
+
+            // Clear input field
+            document.getElementById("ai-user-input").value = "";
         });
 
         // 📩 Append Message to Chat
@@ -150,6 +184,15 @@
             messageDiv.textContent = text;
             messageDiv.classList.add("message", className);
             document.getElementById("chat-box").appendChild(messageDiv);
+        }
+
+        // 🧠 Get AI Response (Simulated for now)
+        async function getAIResponse(query) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(`AI generated response for: "${query}"`);
+                }, 1000);
+            });
         }
 
         // 📍 Add AI Note Marker in Book
