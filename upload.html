@@ -22,6 +22,9 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
         }
+        .book-viewer-container {
+            position: relative;
+        }
     </style>
 </head>
 <body class="bg-[#ecd69f] min-h-screen">
@@ -29,6 +32,8 @@
         <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <a href="index.html" class="font-['Pacifico'] text-2xl">ReadMind</a>
+                <a href="books.html" >HOME</a>
+                
             </div>
             <button id="darkModeToggle" class="w-10 h-10 flex items-center justify-center"><i class="ri-moon-line ri-xl"></i></button>
         </nav>
@@ -37,12 +42,15 @@
     <main class="container mx-auto px-4 py-8 relative">
         <div class="bg-white rounded-lg p-8 shadow-lg relative">
             <h2 class="text-2xl font-bold mb-4">Book Viewer</h2>
-            <div class="relative">
+            <div class="book-viewer-container">
                 <iframe id="bookViewer" src="" class="w-full h-[500px] border rounded" allow="context-menu"></iframe>
             </div>
             <div class="flex justify-between items-center mt-4">
                 <button id="bookmarkButton" class="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600">Bookmark</button>
                 <span id="bookmarkStatus" class="text-gray-600">No bookmark set</span>
+            </div>
+            <div class="mt-4">
+                <button id="summarizeButton" class="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Summarize Selected Text</button>
             </div>
         </div>
     </main>
@@ -80,6 +88,7 @@
         const aiSummarizeText = document.getElementById('aiSummarizeText');
         const submitSummarize = document.getElementById('submitSummarize');
         const closeSummarizePanel = document.getElementById('closeSummarizePanel');
+        const summarizeButton = document.getElementById('summarizeButton');
 
         let selectedText = "";
         let selectedX = null, selectedY = null;
@@ -92,29 +101,27 @@
             bookViewer.src = bookUrl;
         }
 
-        // 🖱️ LEFT CLICK - SHOW CONTEXT MENU
+        // 🖱️ RIGHT CLICK - SHOW CONTEXT MENU
         bookViewer.addEventListener('load', () => {
             const iframeDocument = bookViewer.contentDocument || bookViewer.contentWindow.document;
 
-            iframeDocument.addEventListener('click', (event) => {
-                if (event.button === 0) { // Left click
-                    event.preventDefault();
-                    selectedX = event.clientX;
-                    selectedY = event.clientY;
+            // 🖱️ RIGHT CLICK - SELECT TEXT FOR AI SUMMARIZE
+            iframeDocument.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                selectedText = iframeDocument.getSelection().toString();
 
-                    // Get the selected text
-                    selectedText = iframeDocument.getSelection().toString();
+                if (selectedText) {
+                    console.log("Selected text for AI summarize:", selectedText);
 
-                    if (selectedText) {
-                        console.log("Selected text:", selectedText);
-
-                        // Show the context menu at the click position
-                        contextMenu.style.top = `${event.pageY}px`;
-                        contextMenu.style.left = `${event.pageX}px`;
-                        contextMenu.style.display = 'block';
-                    }
+                    // Show the context menu at the click position
+                    contextMenu.style.top = `${event.pageY}px`;
+                    contextMenu.style.left = `${event.pageX}px`;
+                    contextMenu.style.display = 'block';
                 }
             });
+
+            // Allow text selection and copying
+            iframeDocument.body.style.userSelect = 'text';
         });
 
         // Hide context menu when clicking outside
@@ -158,11 +165,11 @@
             console.log("Saving note at:", selectedX, selectedY);
 
             let notes = getSavedNotes();
-            notes.push({ x: selectedX, y: selectedY, content: noteContent });
+            notes.push({ x: selectedX, y: selectedY, content: noteContent, type: 'human' });
 
             localStorage.setItem(notesKey, JSON.stringify(notes));
 
-            addNoteMarker(selectedX, selectedY, noteContent);
+            addNoteMarker(selectedX, selectedY, noteContent, 'human');
 
             alert("Note saved successfully!");
             notesPanel.style.display = 'none';
@@ -179,14 +186,14 @@
         });
 
         // 🔹 ADD NOTE MARKER
-        function addNoteMarker(x, y, content) {
+        function addNoteMarker(x, y, content, type) {
             const marker = document.createElement('i');
-            marker.className = 'ri-user-line note-marker';
+            marker.className = type === 'human' ? 'ri-user-line note-marker' : 'ri-robot-line note-marker';
             marker.style.position = 'absolute';
             marker.style.top = `${y}px`;
             marker.style.left = `${x}px`;
             marker.style.fontSize = '20px';
-            marker.style.color = 'black';
+            marker.style.color = type === 'human' ? 'blue' : 'green';
             marker.title = content;
             document.body.appendChild(marker);
 
@@ -234,9 +241,30 @@
 
                 const data = await response.json();
                 alert(`AI Summary: ${data.summary}`);
+
+                // Save AI summary as a note
+                let notes = getSavedNotes();
+                notes.push({ x: selectedX, y: selectedY, content: data.summary, type: 'ai' });
+
+                localStorage.setItem(notesKey, JSON.stringify(notes));
+
+                addNoteMarker(selectedX, selectedY, data.summary, 'ai');
             } catch (error) {
                 console.error("Error summarizing text:", error);
                 alert("Failed to summarize text. Please try again.");
+            }
+        });
+
+        // SUMMARIZE SELECTED TEXT
+        summarizeButton.addEventListener('click', () => {
+            const iframeDocument = bookViewer.contentDocument || bookViewer.contentWindow.document;
+            selectedText = iframeDocument.getSelection().toString();
+
+            if (selectedText) {
+                aiSummarizePanel.style.display = 'block';
+                aiSummarizeText.value = selectedText;
+            } else {
+                alert("Please select some text to summarize.");
             }
         });
     </script>
