@@ -3,101 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat Viewer</title>
+    <title>Upload PDF - ReadMind</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
-    <style>
-        body { font-family: Arial, sans-serif; background: #ecd69f; }
-        .chat-container { position: relative; width: 100%; height: 90vh; background: white; padding: 20px; overflow-y: auto; }
-        .note-marker { cursor: pointer; position: absolute; font-size: 20px; color: blue; }
-        .floating-panel {
-            display: none; position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); background: white;
-            padding: 20px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); z-index: 1000;
-        }
-    </style>
 </head>
 <body class="bg-[#ecd69f] min-h-screen">
     <header class="sticky top-0 z-50 bg-[#ecd69f] shadow-md">
         <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="index.html" class="font-['Pacifico'] text-2xl">ReadMind</a>
-            <button id="darkModeToggle" class="w-10 h-10 flex items-center justify-center"><i class="ri-moon-line ri-xl"></i></button>
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="font-['Pacifico'] text-2xl">ReadMind</a>
+            </div>
+            <div class="flex items-center space-x-8">
+                <a href="index.html" class="hover:text-gray-600">Home</a>
+                <a href="library.html" class="hover:text-gray-600">Library</a>
+                <a href="pdfviewer.html" class="hover:text-gray-600">Viewer</a>
+            </div>
         </nav>
     </header>
 
-    <main class="container mx-auto px-4 py-8 relative">
-        <div class="bg-white rounded-lg p-8 shadow-lg relative">
-            <h2 class="text-2xl font-bold mb-4">AI Chat</h2>
-            <div class="chat-container" id="chatContainer"></div>
-            <div class="flex mt-4">
-                <input type="text" id="chatInput" class="flex-1 border p-2 rounded" placeholder="Ask AI...">
-                <button id="sendButton" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Send</button>
-            </div>
+    <main class="container mx-auto px-4 py-12 text-center">
+        <h2 class="text-3xl font-bold mb-4">Upload Your PDF</h2>
+        <div class="bg-white p-8 rounded-lg shadow-lg inline-block">
+            <input type="file" id="pdfInput" accept="application/pdf" class="mb-4">
+            <br>
+            <button id="uploadButton" class="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Upload & View</button>
         </div>
     </main>
 
-    <!-- Notes Panel -->
-    <div id="notesPanel" class="floating-panel">
-        <h2 class="text-lg font-bold">My Notes</h2>
-        <textarea id="userNotes" placeholder="Write your notes here..."></textarea>
-        <button id="saveNotes">Save Notes</button>
-        <button id="closeNotes">Close</button>
-    </div>
-
     <script>
-        const chatContainer = document.getElementById('chatContainer');
-        const chatInput = document.getElementById('chatInput');
-        const sendButton = document.getElementById('sendButton');
-        const notesPanel = document.getElementById('notesPanel');
-        const userNotes = document.getElementById('userNotes');
-        const saveNotes = document.getElementById('saveNotes');
-        const closeNotes = document.getElementById('closeNotes');
+        document.getElementById('uploadButton').addEventListener('click', () => {
+            const fileInput = document.getElementById('pdfInput');
+            const file = fileInput.files[0];
 
-        // 🗨️ Send AI Chat Message
-        sendButton.addEventListener('click', async () => {
-            const userMessage = chatInput.value.trim();
-            if (!userMessage) return;
-
-            appendMessage('User', userMessage);
-            chatInput.value = '';
-
-            // 🧠 Simulating AI Response (Replace with actual API)
-            setTimeout(() => {
-                const aiResponse = `AI: This is a response for "${userMessage}"`;
-                appendMessage('AI', aiResponse);
-            }, 1000);
-        });
-
-        // 📝 Append Message to Chat
-        function appendMessage(sender, text) {
-            const messageDiv = document.createElement('div');
-            messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        // 🖱️ RIGHT CLICK - OPEN NOTES PANEL
-        chatContainer.addEventListener('contextmenu', (event) => {
-            event.preventDefault();
-            notesPanel.style.display = 'block';
-            userNotes.value = '';
-        });
-
-        // 💾 SAVE NOTE
-        saveNotes.addEventListener('click', () => {
-            const noteContent = userNotes.value.trim();
-            if (!noteContent) {
-                alert("Please enter a note before saving.");
+            if (!file) {
+                alert("Please select a PDF file.");
                 return;
             }
-            alert("Note saved successfully!");
-            notesPanel.style.display = 'none';
-        });
 
-        // ❌ CLOSE NOTES PANEL
-        closeNotes.addEventListener('click', () => {
-            notesPanel.style.display = 'none';
+            const fileURL = URL.createObjectURL(file);
+            window.location.href = `pdfviewer.html?pdf=${encodeURIComponent(fileURL)}`;
         });
     </script>
 </body>
