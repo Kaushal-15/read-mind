@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReadMind - PDF Viewer</title>
+    <title>AI Chat Viewer</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
     <style>
-        body { background-color: #ecd69f; }
-        .pdf-container { position: relative; width: 100%; height: 90vh; overflow: auto; border: 1px solid #ccc; background: white; }
+        body { font-family: Arial, sans-serif; background: #ecd69f; }
+        .chat-container { position: relative; width: 100%; height: 90vh; background: white; padding: 20px; overflow-y: auto; }
         .note-marker { cursor: pointer; position: absolute; font-size: 20px; color: blue; }
         .floating-panel {
             display: none; position: fixed; top: 50%; left: 50%;
@@ -19,172 +18,86 @@
         }
     </style>
 </head>
-<body>
+<body class="bg-[#ecd69f] min-h-screen">
     <header class="sticky top-0 z-50 bg-[#ecd69f] shadow-md">
         <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <a href="index.html" class="font-['Pacifico'] text-2xl">ReadMind</a>
-                <a href="books.html">HOME</a>
-            </div>
+            <a href="index.html" class="font-['Pacifico'] text-2xl">ReadMind</a>
+            <button id="darkModeToggle" class="w-10 h-10 flex items-center justify-center"><i class="ri-moon-line ri-xl"></i></button>
         </nav>
     </header>
 
     <main class="container mx-auto px-4 py-8 relative">
         <div class="bg-white rounded-lg p-8 shadow-lg relative">
-            <h2 class="text-2xl font-bold mb-4">PDF Viewer</h2>
-            <div class="pdf-container" id="pdfViewer"></div>
+            <h2 class="text-2xl font-bold mb-4">AI Chat</h2>
+            <div class="chat-container" id="chatContainer"></div>
+            <div class="flex mt-4">
+                <input type="text" id="chatInput" class="flex-1 border p-2 rounded" placeholder="Ask AI...">
+                <button id="sendButton" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Send</button>
+            </div>
         </div>
     </main>
 
     <!-- Notes Panel -->
     <div id="notesPanel" class="floating-panel">
-        <h2 class="text-lg font-bold">Add Note</h2>
-        <textarea id="userNotes" placeholder="Write your notes here..." class="w-full p-2 border"></textarea>
-        <button id="saveNotes" class="bg-green-500 text-white px-4 py-2 rounded">Save Note</button>
-        <button id="closeNotes" class="bg-red-500 text-white px-4 py-2 rounded">Close</button>
-    </div>
-
-    <!-- AI Summarize Panel -->
-    <div id="aiSummarizePanel" class="floating-panel">
-        <h2 class="text-lg font-bold">Summarize with AI</h2>
-        <textarea id="aiSummarizeText" placeholder="Enter text to summarize..." class="w-full p-2 border"></textarea>
-        <button id="submitSummarize" class="bg-blue-500 text-white px-4 py-2 rounded">Summarize</button>
-        <button id="closeSummarizePanel" class="bg-red-500 text-white px-4 py-2 rounded">Close</button>
+        <h2 class="text-lg font-bold">My Notes</h2>
+        <textarea id="userNotes" placeholder="Write your notes here..."></textarea>
+        <button id="saveNotes">Save Notes</button>
+        <button id="closeNotes">Close</button>
     </div>
 
     <script>
-        const pdfViewer = document.getElementById('pdfViewer');
+        const chatContainer = document.getElementById('chatContainer');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
         const notesPanel = document.getElementById('notesPanel');
         const userNotes = document.getElementById('userNotes');
         const saveNotes = document.getElementById('saveNotes');
         const closeNotes = document.getElementById('closeNotes');
-        const aiSummarizePanel = document.getElementById('aiSummarizePanel');
-        const aiSummarizeText = document.getElementById('aiSummarizeText');
-        const submitSummarize = document.getElementById('submitSummarize');
-        const closeSummarizePanel = document.getElementById('closeSummarizePanel');
 
-        let selectedText = "";
-        let selectedX = null, selectedY = null;
-        let pdfDoc = null;
-        const params = new URLSearchParams(window.location.search);
-        const pdfUrl = params.get('pdf');
-        const notesKey = pdfUrl ? `notes_${pdfUrl}` : "savedNotes";
+        // 🗨️ Send AI Chat Message
+        sendButton.addEventListener('click', async () => {
+            const userMessage = chatInput.value.trim();
+            if (!userMessage) return;
 
-        if (pdfUrl) {
-            loadPDF(pdfUrl);
-        }
+            appendMessage('User', userMessage);
+            chatInput.value = '';
 
-        async function loadPDF(url) {
-            const loadingTask = pdfjsLib.getDocument(url);
-            pdfDoc = await loadingTask.promise;
-            renderPage(1);
-        }
-
-        async function renderPage(num) {
-            const canvas = document.createElement("canvas");
-            pdfViewer.innerHTML = "";
-            pdfViewer.appendChild(canvas);
-            const ctx = canvas.getContext("2d");
-            const page = await pdfDoc.getPage(num);
-            const viewport = page.getViewport({ scale: 1.5 });
-
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            page.render({ canvasContext: ctx, viewport });
-
-            pdfViewer.style.height = `${canvas.height}px`;
-
-            loadSavedNotes();
-        }
-
-        pdfViewer.addEventListener('contextmenu', (event) => {
-            event.preventDefault();
-            selectedX = event.offsetX;
-            selectedY = event.offsetY;
-
-            let textSelection = window.getSelection().toString().trim();
-            if (textSelection) {
-                selectedText = textSelection;
-                aiSummarizePanel.style.display = 'block';
-                aiSummarizeText.value = selectedText;
-            } else {
-                notesPanel.style.display = 'block';
-            }
+            // 🧠 Simulating AI Response (Replace with actual API)
+            setTimeout(() => {
+                const aiResponse = `AI: This is a response for "${userMessage}"`;
+                appendMessage('AI', aiResponse);
+            }, 1000);
         });
 
+        // 📝 Append Message to Chat
+        function appendMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // 🖱️ RIGHT CLICK - OPEN NOTES PANEL
+        chatContainer.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            notesPanel.style.display = 'block';
+            userNotes.value = '';
+        });
+
+        // 💾 SAVE NOTE
         saveNotes.addEventListener('click', () => {
             const noteContent = userNotes.value.trim();
             if (!noteContent) {
                 alert("Please enter a note before saving.");
                 return;
             }
-
-            let notes = getSavedNotes();
-            notes.push({ x: selectedX, y: selectedY, content: noteContent });
-            localStorage.setItem(notesKey, JSON.stringify(notes));
-
-            addNoteMarker(selectedX, selectedY, noteContent);
             alert("Note saved successfully!");
             notesPanel.style.display = 'none';
-            userNotes.value = "";
         });
 
+        // ❌ CLOSE NOTES PANEL
         closeNotes.addEventListener('click', () => {
             notesPanel.style.display = 'none';
-        });
-
-        closeSummarizePanel.addEventListener('click', () => {
-            aiSummarizePanel.style.display = 'none';
-        });
-
-        function addNoteMarker(x, y, content) {
-            const marker = document.createElement('i');
-            marker.className = "ri-bookmark-line note-marker";
-            marker.style.top = `${y}px`;
-            marker.style.left = `${x}px`;
-            marker.title = content;
-            pdfViewer.appendChild(marker);
-
-            marker.addEventListener('click', () => {
-                alert(`Note: ${content}`);
-            });
-        }
-
-        function loadSavedNotes() {
-            let notes = getSavedNotes();
-            notes.forEach(note => addNoteMarker(note.x, note.y, note.content));
-        }
-
-        function getSavedNotes() {
-            const storedNotes = localStorage.getItem(notesKey);
-            try {
-                return storedNotes ? JSON.parse(storedNotes) : [];
-            } catch (error) {
-                console.error("Invalid JSON in localStorage. Resetting notes.", error);
-                localStorage.removeItem(notesKey);
-                return [];
-            }
-        }
-
-        submitSummarize.addEventListener('click', async () => {
-            const text = aiSummarizeText.value.trim();
-            if (!text) {
-                alert("Enter text to summarize.");
-                return;
-            }
-
-            try {
-                const response = await fetch('https://api.gemini.com/v1/summarize', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer YOUR_GEMINI_API_KEY' },
-                    body: JSON.stringify({ text: text })
-                });
-
-                const data = await response.json();
-                alert(`AI Summary: ${data.summary}`);
-            } catch (error) {
-                alert("Failed to summarize text.");
-            }
         });
     </script>
 </body>
