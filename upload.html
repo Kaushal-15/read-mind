@@ -20,6 +20,7 @@
             <div id="contextMenu">
                 <button id="addNote">Add Note</button>
                 <button id="aiSummarize">Summarize with AI</button>
+                <button id="copyText">Copy Text</button>
             </div>
         
             <!-- Floating Notes Panel -->
@@ -72,6 +73,7 @@
         const closeNotes = document.getElementById('closeNotes');
         const addNote = document.getElementById('addNote');
         const aiSummarize = document.getElementById('aiSummarize');
+        const copyText = document.getElementById('copyText');
         const notesList = document.getElementById('notes-list');
         const notesFloatingPanel = document.getElementById('notes-panel');
         const aiSummarizeBox = document.getElementById('aiSummarizeBox');
@@ -134,6 +136,23 @@
             contextMenu.style.display = 'none';
             aiSummarizeBox.style.display = 'block';
             aiSummarizeText.value = selectedText; // Pre-fill the AI summarize box with selected text
+        });
+
+        // 📋 COPY TEXT TO CLIPBOARD
+        copyText.addEventListener('click', () => {
+            if (selectedText) {
+                navigator.clipboard.writeText(selectedText)
+                    .then(() => {
+                        alert("Text copied to clipboard!");
+                    })
+                    .catch((err) => {
+                        console.error("Failed to copy text:", err);
+                        alert("Failed to copy text. Please try again.");
+                    });
+            } else {
+                alert("No text selected to copy.");
+            }
+            contextMenu.style.display = 'none';
         });
 
         // 💾 SAVE NOTE
