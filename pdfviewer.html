@@ -24,6 +24,44 @@
             display: none;
             z-index: 1002;
         }
+
+        /* Chat Styles */
+        #chat-box {
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            background-color: #ddd;
+            align-self: flex-start;
+        }
+
+        /* AI Note Marker */
+        .note-marker {
+            position: absolute;
+            cursor: pointer;
+            z-index: 100;
+            color: blue; /* AI note color */
+        }
     </style>
 </head>
 <body class="bg-[#ecd69f] min-h-screen">
@@ -53,7 +91,8 @@
 
     <!-- Floating AI Section -->
     <div id="aiFloatingSection" class="floating-panel">
-        <iframe id="dictIframe" src="dict.html" width="100%" height="400px" style="border: none;"></iframe>
+        <h2 class="text-lg font-bold">AI Chat</h2>
+        <div id="chat-box"></div>
     </div>
 
     <!-- PDF Viewer -->
@@ -68,27 +107,13 @@
             localStorage.setItem('darkMode', document.body.classList.contains('dark'));
         });
 
-        // 🌙 Load Dark Mode
-        function loadDarkMode() {
-            if (localStorage.getItem('darkMode') === 'true') {
-                document.body.classList.add('dark');
-            }
-        }
-
-        // 📄 Load PDF from URL
+        // 📄 Load PDF from URL parameter
         function loadPDF(pdfUrl) {
             document.getElementById('pdfViewer').src = pdfUrl;
         }
 
-        // 🤖 AI Doubt Feature: Open Dictionary Panel
-        document.getElementById('aiButton').addEventListener('click', () => {
-            const aiPanel = document.getElementById('aiFloatingSection');
-            aiPanel.style.display = aiPanel.style.display === 'none' ? 'block' : 'none';
-        });
-
-        // 📚 Load PDF from URL parameter
+        // 📚 Load PDF on Page Load
         document.addEventListener('DOMContentLoaded', () => {
-            loadDarkMode();
             const urlParams = new URLSearchParams(window.location.search);
             const pdfUrl = urlParams.get('pdf');
             if (pdfUrl) {
@@ -96,23 +121,48 @@
             }
         });
 
-        // 📩 Receive messages from `dict.html`
+        // 🤖 Toggle AI Chat Panel
+        document.getElementById('aiButton').addEventListener('click', () => {
+            const aiPanel = document.getElementById('aiFloatingSection');
+            aiPanel.style.display = aiPanel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // 📩 Receive AI Response and Show in Chat
         window.addEventListener('message', (event) => {
             if (event.origin !== window.location.origin) return;
-
             const { word, definition } = event.data;
-            if (word && definition && word.trim() !== "" && definition.trim() !== "") {
-                alert(`AI Definition of "${word}": ${definition}`);
+
+            if (word && definition) {
+                appendMessage(`User: ${word}`, "user-message");
+                appendMessage(`AI: ${definition}`, "bot-message");
+
+                // Confirm if user wants to save the AI note
+                const saveNote = confirm(`Save AI response for "${word}" in the book?`);
+                if (saveNote) {
+                    addAINoteMarker(word, definition);
+                }
             }
         });
 
-        // 🎯 Select Text and Send to AI
-        document.getElementById('pdfViewer').addEventListener('mouseup', () => {
-            const selectedText = window.getSelection().toString().trim();
-            if (selectedText) {
-                document.getElementById('dictIframe').contentWindow.postMessage({ word: selectedText }, '*');
-            }
-        });
+        // 📩 Append Message to Chat
+        function appendMessage(text, className) {
+            const messageDiv = document.createElement("div");
+            messageDiv.textContent = text;
+            messageDiv.classList.add("message", className);
+            document.getElementById("chat-box").appendChild(messageDiv);
+        }
+
+        // 📍 Add AI Note Marker in Book
+        function addAINoteMarker(word, definition) {
+            const marker = document.createElement('i');
+            marker.className = 'ri-robot-line note-marker';
+            marker.style.position = 'absolute';
+            marker.style.top = `${Math.random() * 500}px`;
+            marker.style.left = `${Math.random() * 300}px`;
+            marker.style.fontSize = '20px';
+            marker.title = `AI Note: ${definition}`;
+            document.body.appendChild(marker);
+        }
     </script>
 </body>
 </html>
