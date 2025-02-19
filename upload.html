@@ -3,13 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReadMind - Book Viewer</title>
+    <title>ReadMind - PDF Viewer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
     <style>
+        body {
+            background-color: #ecd69f;
+        }
+        .pdf-container {
+            position: relative;
+            width: 100%;
+            height: 90vh;
+            overflow: auto;
+            border: 1px solid #ccc;
+            background: white;
+        }
         .note-marker {
             cursor: pointer;
+            position: absolute;
+            font-size: 20px;
+            color: blue;
         }
         .floating-panel {
             display: none;
@@ -22,251 +37,140 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
         }
-        .book-viewer-container {
-            position: relative;
-        }
     </style>
 </head>
-<body class="bg-[#ecd69f] min-h-screen">
+<body>
     <header class="sticky top-0 z-50 bg-[#ecd69f] shadow-md">
         <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <a href="index.html" class="font-['Pacifico'] text-2xl">ReadMind</a>
-                <a href="books.html" >HOME</a>
-                
+                <a href="books.html">HOME</a>
             </div>
-            <button id="darkModeToggle" class="w-10 h-10 flex items-center justify-center"><i class="ri-moon-line ri-xl"></i></button>
         </nav>
     </header>
 
     <main class="container mx-auto px-4 py-8 relative">
         <div class="bg-white rounded-lg p-8 shadow-lg relative">
-            <h2 class="text-2xl font-bold mb-4">Book Viewer</h2>
-            <div class="book-viewer-container">
-                <iframe id="bookViewer" src="" class="w-full h-[500px] border rounded" allow="context-menu"></iframe>
-            </div>
-            <div class="flex justify-between items-center mt-4">
-                <button id="bookmarkButton" class="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600">Bookmark</button>
-                <span id="bookmarkStatus" class="text-gray-600">No bookmark set</span>
-            </div>
-            <div class="mt-4">
-                <button id="summarizeButton" class="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Summarize Selected Text</button>
-            </div>
+            <h2 class="text-2xl font-bold mb-4">PDF Viewer</h2>
+            <div class="pdf-container" id="pdfViewer"></div>
         </div>
     </main>
 
-    <!-- Context Menu -->
-    <div id="contextMenu" class="floating-panel">
-        <button id="addNote">Add Note</button>
-        <button id="aiSummarize">Summarize with AI</button>
-    </div>
-
     <!-- Notes Panel -->
     <div id="notesPanel" class="floating-panel">
-        <h2 class="text-lg font-bold">My Notes</h2>
-        <textarea id="userNotes" placeholder="Write your notes here..."></textarea>
-        <button id="saveNotes">Save Notes</button>
-        <button id="closeNotes">Close</button>
-    </div>
-
-    <!-- AI Summarize Panel -->
-    <div id="aiSummarizePanel" class="floating-panel">
-        <h2 class="text-lg font-bold">Summarize with AI</h2>
-        <textarea id="aiSummarizeText" placeholder="Enter text to summarize..."></textarea>
-        <button id="submitSummarize">Submit</button>
-        <button id="closeSummarizePanel">Close</button>
+        <h2 class="text-lg font-bold">Add Note</h2>
+        <textarea id="userNotes" placeholder="Write your notes here..." class="w-full p-2 border"></textarea>
+        <button id="saveNotes" class="bg-green-500 text-white px-4 py-2 rounded">Save Note</button>
+        <button id="closeNotes" class="bg-red-500 text-white px-4 py-2 rounded">Close</button>
     </div>
 
     <script>
-        const bookViewer = document.getElementById('bookViewer');
-        const contextMenu = document.getElementById('contextMenu');
+        const pdfViewer = document.getElementById('pdfViewer');
         const notesPanel = document.getElementById('notesPanel');
         const userNotes = document.getElementById('userNotes');
         const saveNotes = document.getElementById('saveNotes');
         const closeNotes = document.getElementById('closeNotes');
-        const aiSummarizePanel = document.getElementById('aiSummarizePanel');
-        const aiSummarizeText = document.getElementById('aiSummarizeText');
-        const submitSummarize = document.getElementById('submitSummarize');
-        const closeSummarizePanel = document.getElementById('closeSummarizePanel');
-        const summarizeButton = document.getElementById('summarizeButton');
 
-        let selectedText = "";
         let selectedX = null, selectedY = null;
-
+        let pageNumber = 1;
+        let pdfDoc = null;
         const params = new URLSearchParams(window.location.search);
-        const bookUrl = params.get('book');
-        const notesKey = bookUrl ? `notes_${bookUrl}` : "savedNotes";
+        const pdfUrl = params.get('pdf');
+        const notesKey = pdfUrl ? `notes_${pdfUrl}` : "savedNotes";
 
-        if (bookUrl) {
-            bookViewer.src = bookUrl;
+        if (pdfUrl) {
+            loadPDF(pdfUrl);
         }
 
-        // 🖱️ RIGHT CLICK - SHOW CONTEXT MENU
-        bookViewer.addEventListener('load', () => {
-            const iframeDocument = bookViewer.contentDocument || bookViewer.contentWindow.document;
+        // 🔄 Load PDF
+        async function loadPDF(url) {
+            const loadingTask = pdfjsLib.getDocument(url);
+            pdfDoc = await loadingTask.promise;
+            renderPage(pageNumber);
+        }
 
-            // 🖱️ RIGHT CLICK - SELECT TEXT FOR AI SUMMARIZE
-            iframeDocument.addEventListener('contextmenu', (event) => {
-                event.preventDefault();
-                selectedText = iframeDocument.getSelection().toString();
+        // 📖 Render PDF Page
+        async function renderPage(num) {
+            const canvas = document.createElement("canvas");
+            pdfViewer.innerHTML = "";
+            pdfViewer.appendChild(canvas);
+            const ctx = canvas.getContext("2d");
+            const page = await pdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale: 1.5 });
 
-                if (selectedText) {
-                    console.log("Selected text for AI summarize:", selectedText);
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            page.render({ canvasContext: ctx, viewport });
 
-                    // Show the context menu at the click position
-                    contextMenu.style.top = `${event.pageY}px`;
-                    contextMenu.style.left = `${event.pageX}px`;
-                    contextMenu.style.display = 'block';
-                }
-            });
+            pdfViewer.style.height = `${canvas.height}px`;
 
-            // Allow text selection and copying
-            iframeDocument.body.style.userSelect = 'text';
-        });
+            // 🟢 Load Notes on Page
+            loadSavedNotes();
+        }
 
-        // Hide context menu when clicking outside
-        document.addEventListener('click', (event) => {
-            if (!contextMenu.contains(event.target)) {
-                contextMenu.style.display = 'none';
-            }
-        });
-
-        // 📝 OPEN NOTES PANEL
-        document.getElementById('addNote').addEventListener('click', () => {
-            console.log("Add note clicked");
-            contextMenu.style.display = 'none';
+        // 🎯 Right-click to Add Notes
+        pdfViewer.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            selectedX = event.offsetX;
+            selectedY = event.offsetY;
             notesPanel.style.display = 'block';
-            userNotes.value = selectedText; // Pre-fill the note with selected text
         });
 
-        // 🤖 OPEN AI SUMMARIZE PANEL
-        document.getElementById('aiSummarize').addEventListener('click', () => {
-            console.log("AI Summarize clicked");
-            contextMenu.style.display = 'none';
-            aiSummarizePanel.style.display = 'block';
-            aiSummarizeText.value = selectedText; // Pre-fill the AI summarize box with selected text
-        });
-
-        // 💾 SAVE NOTE
+        // 💾 Save Notes to Local Storage
         saveNotes.addEventListener('click', () => {
-            console.log("Save button clicked");
-
             const noteContent = userNotes.value.trim();
             if (!noteContent) {
                 alert("Please enter a note before saving.");
                 return;
             }
 
-            if (selectedX === null || selectedY === null) {
-                alert("Note position not set. Try again.");
-                return;
-            }
-
-            console.log("Saving note at:", selectedX, selectedY);
-
             let notes = getSavedNotes();
-            notes.push({ x: selectedX, y: selectedY, content: noteContent, type: 'human' });
-
+            notes.push({ x: selectedX, y: selectedY, content: noteContent });
             localStorage.setItem(notesKey, JSON.stringify(notes));
 
-            addNoteMarker(selectedX, selectedY, noteContent, 'human');
-
+            addNoteMarker(selectedX, selectedY, noteContent);
             alert("Note saved successfully!");
             notesPanel.style.display = 'none';
+            userNotes.value = "";
         });
 
-        // ❌ CLOSE NOTES PANEL
+        // ❌ Close Notes Panel
         closeNotes.addEventListener('click', () => {
             notesPanel.style.display = 'none';
         });
 
-        // ❌ CLOSE AI SUMMARIZE PANEL
-        closeSummarizePanel.addEventListener('click', () => {
-            aiSummarizePanel.style.display = 'none';
-        });
-
-        // 🔹 ADD NOTE MARKER
-        function addNoteMarker(x, y, content, type) {
+        // 📝 Add Note Marker on PDF
+        function addNoteMarker(x, y, content) {
             const marker = document.createElement('i');
-            marker.className = type === 'human' ? 'ri-user-line note-marker' : 'ri-robot-line note-marker';
-            marker.style.position = 'absolute';
+            marker.className = "ri-bookmark-line note-marker";
             marker.style.top = `${y}px`;
             marker.style.left = `${x}px`;
-            marker.style.fontSize = '20px';
-            marker.style.color = type === 'human' ? 'blue' : 'green';
             marker.title = content;
-            document.body.appendChild(marker);
+
+            pdfViewer.appendChild(marker);
 
             marker.addEventListener('click', () => {
                 alert(`Note: ${content}`);
             });
         }
 
-        // 🔄 LOAD SAVED NOTES FROM STORAGE
+        // 🔄 Load Saved Notes
+        function loadSavedNotes() {
+            let notes = getSavedNotes();
+            notes.forEach(note => addNoteMarker(note.x, note.y, note.content));
+        }
+
+        // 📂 Get Notes from Storage
         function getSavedNotes() {
             const storedNotes = localStorage.getItem(notesKey);
             try {
-                return storedNotes ? JSON.parse(storedNotes) : [];  
+                return storedNotes ? JSON.parse(storedNotes) : [];
             } catch (error) {
                 console.error("Invalid JSON in localStorage. Resetting notes.", error);
                 localStorage.removeItem(notesKey);
                 return [];
             }
         }
-
-        // 🤖 SUBMIT AI SUMMARIZE REQUEST
-        submitSummarize.addEventListener('click', async () => {
-            const text = aiSummarizeText.value.trim();
-            if (!text) {
-                alert("Please enter text to summarize.");
-                return;
-            }
-
-            const apiKey = 'AIzaSyAq4O6HhtLHO05E_H5SUCxai01tlgSoz8E'; // Replace with your Gemini API key
-            const apiUrl = 'https://api.gemini.com/v1/summarize'; // Replace with the actual API endpoint
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({ text: text })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
-                }
-
-                const data = await response.json();
-                alert(`AI Summary: ${data.summary}`);
-
-                // Save AI summary as a note
-                let notes = getSavedNotes();
-                notes.push({ x: selectedX, y: selectedY, content: data.summary, type: 'ai' });
-
-                localStorage.setItem(notesKey, JSON.stringify(notes));
-
-                addNoteMarker(selectedX, selectedY, data.summary, 'ai');
-            } catch (error) {
-                console.error("Error summarizing text:", error);
-                alert("Failed to summarize text. Please try again.");
-            }
-        });
-
-        // SUMMARIZE SELECTED TEXT
-        summarizeButton.addEventListener('click', () => {
-            const iframeDocument = bookViewer.contentDocument || bookViewer.contentWindow.document;
-            selectedText = iframeDocument.getSelection().toString();
-
-            if (selectedText) {
-                aiSummarizePanel.style.display = 'block';
-                aiSummarizeText.value = selectedText;
-            } else {
-                alert("Please select some text to summarize.");
-            }
-        });
     </script>
 </body>
 </html>
