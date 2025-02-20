@@ -11,7 +11,7 @@
         .dark { background-color: rgba(0, 0, 0, 0.514); color: #ecd69f; }
         .dark .bg-white { background-color: #ecd69f; color: rgba(0, 0, 0, 0.514); }
 
-        /* Floating AI Chat */
+        /* Floating Panels */
         .floating-panel {
             position: fixed;
             top: 50px;
@@ -26,7 +26,7 @@
         }
 
         /* Chat Styles */
-        #chat-box {
+        #chat-box, #notes-box {
             height: 300px;
             overflow-y: auto;
             padding: 10px;
@@ -37,7 +37,7 @@
             flex-direction: column;
         }
 
-        .message {
+        .message, .note {
             padding: 8px 12px;
             margin-bottom: 5px;
             border-radius: 5px;
@@ -55,21 +55,26 @@
             align-self: flex-start;
         }
 
+        .note {
+            background-color: #f0f0f0;
+            align-self: flex-start;
+        }
+
         /* Input Section */
-        #ai-input-container {
+        #ai-input-container, #notes-input-container {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
 
-        #ai-user-input {
+        #ai-user-input, #notes-user-input {
             flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
 
-        #ai-send-btn {
+        #ai-send-btn, #notes-save-btn {
             padding: 10px 15px;
             background-color: #007bff;
             color: white;
@@ -105,6 +110,16 @@
                 <i class="ri-ai-generate ri-xl"></i>
             </button>
 
+            <!-- Notes Button -->
+            <button id="notesButton" class="w-10 h-10 flex items-center justify-center">
+                <i class="ri-sticky-note-line ri-xl"></i>
+            </button>
+
+            <!-- AI Summarization Button -->
+            <button id="aiSummarizeButton" class="w-10 h-10 flex items-center justify-center">
+                <i class="ri-file-list-line ri-xl"></i>
+            </button>
+
             <!-- Dark Mode Toggle -->
             <button id="darkModeToggle" class="w-10 h-10 flex items-center justify-center">
                 <i class="ri-sun-line ri-xl"></i>
@@ -120,6 +135,23 @@
             <input type="text" id="ai-user-input" placeholder="Ask AI a question...">
             <button id="ai-send-btn">Send</button>
         </div>
+    </div>
+
+    <!-- Floating Notes Panel -->
+    <div id="notesFloatingSection" class="floating-panel">
+        <h2 class="text-lg font-bold">Notes</h2>
+        <div id="notes-box"></div>
+        <div id="notes-input-container">
+            <input type="text" id="notes-user-input" placeholder="Add a note...">
+            <button id="notes-save-btn">Save</button>
+        </div>
+    </div>
+
+    <!-- Floating AI Summarization Panel -->
+    <div id="aiSummarizeFloatingSection" class="floating-panel">
+        <h2 class="text-lg font-bold">AI Summarization</h2>
+        <div id="summarize-box"></div>
+        <button id="ai-summarize-btn" class="w-full mt-2 p-2 bg-blue-500 text-white rounded">Summarize</button>
     </div>
 
     <!-- PDF Viewer -->
@@ -154,19 +186,31 @@
             aiPanel.style.display = aiPanel.style.display === 'none' ? 'block' : 'none';
         });
 
+        // 📝 Toggle Notes Panel
+        document.getElementById('notesButton').addEventListener('click', () => {
+            const notesPanel = document.getElementById('notesFloatingSection');
+            notesPanel.style.display = notesPanel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // 📑 Toggle AI Summarization Panel
+        document.getElementById('aiSummarizeButton').addEventListener('click', () => {
+            const summarizePanel = document.getElementById('aiSummarizeFloatingSection');
+            summarizePanel.style.display = summarizePanel.style.display === 'none' ? 'block' : 'none';
+        });
+
         // ✉️ Handle AI Chat Send Button
         document.getElementById("ai-send-btn").addEventListener("click", async () => {
             const userText = document.getElementById("ai-user-input").value.trim();
             if (!userText) return;
 
             // Show User Query in Chat
-            appendMessage(`User: ${userText}`, "user-message");
+            appendMessage(`User: ${userText}`, "user-message", "chat-box");
 
             // Get AI Response
             const aiResponse = await getAIResponse(userText);
 
             // Show AI Response in Chat
-            appendMessage(`AI: ${aiResponse}`, "bot-message");
+            appendMessage(`AI: ${aiResponse}`, "bot-message", "chat-box");
 
             // Confirm if user wants to save the AI response
             const saveNote = confirm(`Save AI response for "${userText}" in the book?`);
@@ -178,15 +222,15 @@
             document.getElementById("ai-user-input").value = "";
         });
 
-        // 📩 Append Message to Chat
-        function appendMessage(text, className) {
+        // 📩 Append Message to Chat or Notes
+        function appendMessage(text, className, containerId) {
             const messageDiv = document.createElement("div");
             messageDiv.textContent = text;
             messageDiv.classList.add("message", className);
-            document.getElementById("chat-box").appendChild(messageDiv);
+            document.getElementById(containerId).appendChild(messageDiv);
             
             // Auto-scroll chat box
-            document.getElementById("chat-box").scrollTop = document.getElementById("chat-box").scrollHeight;
+            document.getElementById(containerId).scrollTop = document.getElementById(containerId).scrollHeight;
         }
 
         // 🧠 Get AI Response (Simulated for now)
@@ -215,6 +259,37 @@
             marker.style.fontSize = '20px';
             marker.title = `AI Note: ${definition}`;
             document.body.appendChild(marker);
+        }
+
+        // 📝 Handle Notes Save Button
+        document.getElementById("notes-save-btn").addEventListener("click", () => {
+            const noteText = document.getElementById("notes-user-input").value.trim();
+            if (!noteText) return;
+
+            // Show Note in Notes Box
+            appendMessage(noteText, "note", "notes-box");
+
+            // Clear input field
+            document.getElementById("notes-user-input").value = "";
+        });
+
+        // 📑 Handle AI Summarization Button
+        document.getElementById("ai-summarize-btn").addEventListener("click", async () => {
+            const summarizeBox = document.getElementById("summarize-box");
+            summarizeBox.innerHTML = "Summarizing...";
+
+            // Simulate AI Summarization
+            const summary = await getAISummary();
+            summarizeBox.innerHTML = summary;
+        });
+
+        // 📄 Get AI Summary (Simulated for now)
+        async function getAISummary() {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve("This is a simulated summary of the document. It provides a brief overview of the key points discussed.");
+                }, 2000);
+            });
         }
     </script>
 </body>
