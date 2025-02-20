@@ -6,7 +6,9 @@
     <title>PDF Viewer - ReadMind</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="style1.css">
     <style>
         .dark { background-color: rgba(0, 0, 0, 0.514); color: #ecd69f; }
         .dark .bg-white { background-color: #ecd69f; color: rgba(0, 0, 0, 0.514); }
@@ -60,40 +62,37 @@
             align-self: flex-start;
         }
 
-        /* Input Section */
-        #ai-input-container, #notes-input-container {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        #ai-user-input, #notes-user-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        #ai-send-btn, #notes-save-btn {
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
+        .note-icon {
             cursor: pointer;
+            margin-left: 10px;
         }
 
-        /* AI Note Marker */
-        .note-marker {
+        /* Note Icon and Display */
+        .note-icon {
             position: absolute;
             cursor: pointer;
-            z-index: 100;
-            color: blue; /* AI note color */
+            z-index: 1003;
+            background: white;
+            border-radius: 50%;
+            padding: 5px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .note-display {
+            position: absolute;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1004;
         }
     </style>
 </head>
 <body class="bg-[#ecd69f] min-h-screen">
-    <header class="sticky top-0 z-50 bg-[#ecd69f] shadow-md">
+    <!-- Fixed Navbar -->
+    <header class="fixed top-0 left-0 w-full z-50 bg-[#ecd69f] shadow-md">
         <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <div class="w-10 h-10 flex items-center justify-center"><i class="ri-book-line ri-2x"></i></div>
@@ -103,69 +102,37 @@
                 <a href="index.html" class="hover:text-gray-600">Home</a>
                 <a href="library.html" class="hover:text-gray-600">Library</a>
                 <a href="upload.html" class="hover:text-gray-600">Upload</a>
+                <button id="summarizeButton" class="hover:text-gray-600">Summarize</button>
+                <button id="noteButton" class="hover:text-gray-600">Add Note</button>
             </div>
-            
+
             <!-- AI Button -->
             <button id="aiButton" class="w-10 h-10 flex items-center justify-center">
                 <i class="ri-ai-generate ri-xl"></i>
             </button>
-
-            <!-- Notes Button -->
-            <button id="notesButton" class="w-10 h-10 flex items-center justify-center">
-                <i class="ri-sticky-note-line ri-xl"></i>
-            </button>
-
-            <!-- AI Summarization Button -->
-            <button id="aiSummarizeButton" class="w-10 h-10 flex items-center justify-center">
-                <i class="ri-file-list-line ri-xl"></i>
-            </button>
-
-            <!-- Dark Mode Toggle -->
-            <button id="darkModeToggle" class="w-10 h-10 flex items-center justify-center">
-                <i class="ri-sun-line ri-xl"></i>
-            </button>
         </nav>
     </header>
 
-    <!-- Floating AI Chat -->
-    <div id="aiFloatingSection" class="floating-panel">
-        <h2 class="text-lg font-bold">AI Chat</h2>
-        <div id="chat-box"></div>
-        <div id="ai-input-container">
-            <input type="text" id="ai-user-input" placeholder="Ask AI a question...">
-            <button id="ai-send-btn">Send</button>
-        </div>
-    </div>
-
-    <!-- Floating Notes Panel -->
-    <div id="notesFloatingSection" class="floating-panel">
-        <h2 class="text-lg font-bold">Notes</h2>
-        <div id="notes-box"></div>
-        <div id="notes-input-container">
-            <input type="text" id="notes-user-input" placeholder="Add a note...">
-            <button id="notes-save-btn">Save</button>
-        </div>
-    </div>
-
-    <!-- Floating AI Summarization Panel -->
-    <div id="aiSummarizeFloatingSection" class="floating-panel">
-        <h2 class="text-lg font-bold">AI Summarization</h2>
-        <div id="summarize-box"></div>
-        <button id="ai-summarize-btn" class="w-full mt-2 p-2 bg-blue-500 text-white rounded">Summarize</button>
-    </div>
-
     <!-- PDF Viewer -->
-    <main class="container mx-auto px-4 pt-8">
+    <main class="container mx-auto px-4 pt-8 mt-16"> <!-- Added mt-16 to account for the fixed navbar height -->
         <iframe id="pdfViewer" src="" width="100%" height="800px" style="border: none;"></iframe>
     </main>
 
-    <script>
-        // 🌙 Dark Mode Toggle
-        document.getElementById('darkModeToggle').addEventListener('click', () => {
-            document.body.classList.toggle('dark');
-            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
-        });
+    <!-- Floating Chat Panel -->
+    <div id="chatPanel" class="floating-panel">
+        <div id="chat-box"></div>
+        <input type="text" id="user-input" placeholder="Enter a word..." />
+        <button id="send-btn">Send</button>
+    </div>
 
+    <!-- Floating Notes Panel -->
+    <div id="notesPanel" class="floating-panel">
+        <div id="notes-box"></div>
+        <input type="text" id="note-input" placeholder="Enter a note..." />
+        <button id="save-note-btn">Save Note</button>
+    </div>
+
+    <script>
         // 📄 Load PDF from URL parameter
         function loadPDF(pdfUrl) {
             document.getElementById('pdfViewer').src = pdfUrl;
@@ -180,117 +147,89 @@
             }
         });
 
-        // 🤖 Toggle AI Chat Panel
+        // Toggle Chat Panel
         document.getElementById('aiButton').addEventListener('click', () => {
-            const aiPanel = document.getElementById('aiFloatingSection');
-            aiPanel.style.display = aiPanel.style.display === 'none' ? 'block' : 'none';
+            const chatPanel = document.getElementById('chatPanel');
+            chatPanel.style.display = chatPanel.style.display === 'none' ? 'block' : 'none';
         });
 
-        // 📝 Toggle Notes Panel
-        document.getElementById('notesButton').addEventListener('click', () => {
-            const notesPanel = document.getElementById('notesFloatingSection');
+        // Toggle Notes Panel
+        document.getElementById('noteButton').addEventListener('click', () => {
+            const notesPanel = document.getElementById('notesPanel');
             notesPanel.style.display = notesPanel.style.display === 'none' ? 'block' : 'none';
         });
 
-        // 📑 Toggle AI Summarization Panel
-        document.getElementById('aiSummarizeButton').addEventListener('click', () => {
-            const summarizePanel = document.getElementById('aiSummarizeFloatingSection');
-            summarizePanel.style.display = summarizePanel.style.display === 'none' ? 'block' : 'none';
-        });
+        // Function to Add Note Icon with Hover Effect
+        function addNoteIcon(x, y, text) {
+            const noteIcon = document.createElement('div');
+            noteIcon.className = 'note-icon';
+            noteIcon.style.position = 'absolute';
+            noteIcon.style.left = x + 'px';
+            noteIcon.style.top = y + 'px';
+            noteIcon.style.cursor = 'pointer';
+            noteIcon.innerHTML = '👤'; // Human icon for notes
+            noteIcon.title = text; // Tooltip to show note on hover
+            noteIcon.style.zIndex = '1003';
+            noteIcon.style.background = 'white';
+            noteIcon.style.borderRadius = '50%';
+            noteIcon.style.padding = '5px';
 
-        // ✉️ Handle AI Chat Send Button
-        document.getElementById("ai-send-btn").addEventListener("click", async () => {
-            const userText = document.getElementById("ai-user-input").value.trim();
-            if (!userText) return;
+            // Display note on hover
+            const noteDisplay = document.createElement('div');
+            noteDisplay.className = 'note-display';
+            noteDisplay.style.position = 'absolute';
+            noteDisplay.style.left = (x + 20) + 'px';
+            noteDisplay.style.top = (y - 10) + 'px';
+            noteDisplay.style.padding = '10px';
+            noteDisplay.style.background = '#f9f9f9';
+            noteDisplay.style.border = '1px solid #ccc';
+            noteDisplay.style.borderRadius = '5px';
+            noteDisplay.style.boxShadow = '0px 4px 8px rgba(0, 0, 0, 0.2)';
+            noteDisplay.style.display = 'none';
+            noteDisplay.style.zIndex = '1004';
+            noteDisplay.textContent = text;
 
-            // Show User Query in Chat
-            appendMessage(`User: ${userText}`, "user-message", "chat-box");
+            noteIcon.addEventListener('mouseover', () => {
+                noteDisplay.style.display = 'block';
+            });
 
-            // Get AI Response
-            const aiResponse = await getAIResponse(userText);
+            noteIcon.addEventListener('mouseout', () => {
+                noteDisplay.style.display = 'none';
+            });
 
-            // Show AI Response in Chat
-            appendMessage(`AI: ${aiResponse}`, "bot-message", "chat-box");
+            document.body.appendChild(noteIcon);
+            document.body.appendChild(noteDisplay);
+        }
 
-            // Confirm if user wants to save the AI response
-            const saveNote = confirm(`Save AI response for "${userText}" in the book?`);
-            if (saveNote) {
-                addAINoteMarker(userText, aiResponse);
+        // Save Note
+        document.getElementById('save-note-btn').addEventListener('click', () => {
+            const noteInput = document.getElementById('note-input');
+            const noteText = noteInput.value.trim();
+            if (noteText) {
+                const notesBox = document.getElementById('notes-box');
+                const noteElement = document.createElement('div');
+                noteElement.className = 'note';
+                noteElement.textContent = noteText;
+                notesBox.appendChild(noteElement);
+
+                // Add note icon to the PDF viewer
+                const pdfViewer = document.getElementById('pdfViewer');
+                const rect = pdfViewer.getBoundingClientRect();
+                const x = rect.left + rect.width / 2; // Center of the PDF viewer
+                const y = rect.top + rect.height / 2; // Center of the PDF viewer
+                addNoteIcon(x, y, noteText);
+
+                noteInput.value = '';
             }
-
-            // Clear input field
-            document.getElementById("ai-user-input").value = "";
         });
 
-        // 📩 Append Message to Chat or Notes
-        function appendMessage(text, className, containerId) {
-            const messageDiv = document.createElement("div");
-            messageDiv.textContent = text;
-            messageDiv.classList.add("message", className);
-            document.getElementById(containerId).appendChild(messageDiv);
-            
-            // Auto-scroll chat box
-            document.getElementById(containerId).scrollTop = document.getElementById(containerId).scrollHeight;
-        }
-
-        // 🧠 Get AI Response (Simulated for now)
-        async function getAIResponse(query) {
-            // Simulate a meaningful response
-            const responses = [
-                `Here's a detailed explanation for: "${query}"`,
-                `Interesting question! Here's what I think: "${query}" is related to...`,
-                `Based on my knowledge, "${query}" can be understood as...`,
-                `Let me break it down for you: "${query}" means...`,
-            ];
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(responses[Math.floor(Math.random() * responses.length)]);
-                }, 1000);
-            });
-        }
-
-        // 📍 Add AI Note Marker in Book
-        function addAINoteMarker(word, definition) {
-            const marker = document.createElement('i');
-            marker.className = 'ri-robot-line note-marker';
-            marker.style.position = 'absolute';
-            marker.style.top = `${Math.random() * 500}px`;
-            marker.style.left = `${Math.random() * 300}px`;
-            marker.style.fontSize = '20px';
-            marker.title = `AI Note: ${definition}`;
-            document.body.appendChild(marker);
-        }
-
-        // 📝 Handle Notes Save Button
-        document.getElementById("notes-save-btn").addEventListener("click", () => {
-            const noteText = document.getElementById("notes-user-input").value.trim();
-            if (!noteText) return;
-
-            // Show Note in Notes Box
-            appendMessage(noteText, "note", "notes-box");
-
-            // Clear input field
-            document.getElementById("notes-user-input").value = "";
+        // Summarize PDF
+        document.getElementById('summarizeButton').addEventListener('click', () => {
+            // Implement summarization logic here
+            alert('Summarization feature will be implemented here.');
         });
-
-        // 📑 Handle AI Summarization Button
-        document.getElementById("ai-summarize-btn").addEventListener("click", async () => {
-            const summarizeBox = document.getElementById("summarize-box");
-            summarizeBox.innerHTML = "Summarizing...";
-
-            // Simulate AI Summarization
-            const summary = await getAISummary();
-            summarizeBox.innerHTML = summary;
-        });
-
-        // 📄 Get AI Summary (Simulated for now)
-        async function getAISummary() {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve("This is a simulated summary of the document. It provides a brief overview of the key points discussed.");
-                }, 2000);
-            });
-        }
     </script>
+    <script src="api.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
