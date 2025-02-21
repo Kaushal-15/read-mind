@@ -1,107 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word Definition Chatbot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .chat-container {
-            width: 100%;
-            max-width: 500px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #chat-box {
-            height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            margin-bottom: 10px;
-        }
-
-        input {
-            padding: 10px;
-            width: calc(100% - 60px);
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        button {
-            padding: 10px;
-            width: 50px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
+    <link rel="stylesheet" href="style1.css">
 </head>
+
 <body>
     <div class="chat-container">
         <div id="chat-box"></div>
-        <div style="display: flex;">
-            <input type="text" id="user-input" placeholder="Enter a word...">
-            <button id="send-btn">Send</button>
-        </div>
+        <input type="text" id="user-input" placeholder="Enter a word..." />
+        <button id="send-btn">Send</button>
     </div>
 
-    <script>
-        async function getWordDefinition(word) {
-            try {
-                const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-                if (!response.ok) throw new Error("Word not found");
-                
-                const data = await response.json();
-                return data[0]?.meanings?.[0]?.definitions?.[0]?.definition || "Definition not found.";
-            } catch (error) {
-                return "Error: Unable to fetch definition.";
-            }
-        }
-
-        function appendMessage(sender, message) {
-            const chatBox = document.getElementById("chat-box");
-            const messageDiv = document.createElement("div");
-            messageDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
-            chatBox.appendChild(messageDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        document.getElementById("send-btn").addEventListener("click", async () => {
-            const userInput = document.getElementById("user-input");
-            const word = userInput.value.trim();
-
-            if (!word) return;
-
-            appendMessage("User", word);
-            userInput.value = "";  // Clear input box
-
-            const definition = await getWordDefinition(word);
-            appendMessage("AI", definition);
-        });
-
-        document.getElementById("user-input").addEventListener("keypress", function (event) {
-            if (event.key === "Enter") {
-                document.getElementById("send-btn").click();
-            }
-        });
-    </script>
+    <script src="api.js"></script>
+    <script src="app.js"></script>
 </body>
+
 </html>
