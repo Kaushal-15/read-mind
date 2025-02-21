@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Summarizer with Translation</title>
+    <style>
+        /* Your existing styles */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Book Summarizer with Translation</h1>
+        <textarea id="bookContent" placeholder="Paste book content here..."></textarea>
+        <button onclick="summarizeText()">Summarize</button>
+
+        <h2>Summary (English):</h2>
+        <p id="summaryText"></p>
+
+        <h2>Translation (Tamil):</h2>
+        <p id="translatedText"></p>
+
+        <h3>Read Aloud (English Only):</h3>
+        <button onclick="readSummary()">Read Aloud</button>
+        <button onclick="pauseReading()">Pause</button>
+        <button onclick="closePage()">Close</button>
+    </div>
+
+    <script>
+        let fullSummary = "";
+        let isPaused = false;
+        let speechUtterance;
+        let currentWordIndex = 0;
+        let wordsArray = [];
+        let maleVoice = null;
+
+        // Load Male Voice for English
+        function loadVoices() {
+            let voices = speechSynthesis.getVoices();
+            maleVoice = voices.find(voice => voice.name.includes("Male") || voice.name.includes("David") || voice.name.includes("Alex"));
+
+            if (!maleVoice) {
+                maleVoice = voices.find(voice => voice.lang === "en-US") || voices[0]; // Default to US English voice
+            }
+        }
+
+        speechSynthesis.onvoiceschanged = loadVoices;
+        window.onload = loadVoices;
+
+        function summarizeText() {
+            let content = document.getElementById("bookContent").value.trim();
+            if (!content) {
+                alert("Please enter book content first.");
+                return;
+            }
+
+            let sentences = content.match(/[^.!?]+[.!?]+/g) || [];
+            if (sentences.length < 3) {
+                document.getElementById("summaryText").innerText = "Not enough text to summarize.";
+                return;
+            }
+
+            let importantSentences = sentences.slice(0, Math.min(sentences.length, 3));
+            fullSummary = importantSentences.join(" ");
+            document.getElementById("summaryText").innerText = fullSummary;
+
+            // Translate automatically to Tamil
+            translateToTamil(fullSummary);
+        }
+
+        function readSummary() {
+            if (!fullSummary) {
+                alert("No summary to read!");
+                return;
+            }
+
+            stopReading();
+            wordsArray = fullSummary.split(/\s+/);
+            currentWordIndex = 0;
+            isPaused = false;
+            speakNextWord();
+        }
+
+        function speakNextWord() {
+            if (currentWordIndex >= wordsArray.length || isPaused) return;
+
+            let sentenceToSpeak = wordsArray.slice(currentWordIndex).join(" ");
+            speechUtterance = new SpeechSynthesisUtterance(sentenceToSpeak);
+            speechUtterance.rate = 1.0;
+            speechUtterance.pitch = 1.0;
+            speechUtterance.lang = "en-US"; // English only
+
+            if (maleVoice) {
+                speechUtterance.voice = maleVoice;
+            }
+
+            speechUtterance.onstart = function () {
+                highlightWords();
+            };
+
+            speechUtterance.onend = function () {
+                if (!isPaused) {
+                    stopReading();
+                }
+            };
+
+            speechSynthesis.speak(speechUtterance);
+        }
+
+        function highlightWords() {
+            let index = 0;
+            let interval = setInterval(() => {
+                if (index >= wordsArray.length || isPaused) {
+                    clearInterval(interval);
+                    return;
+                }
+
+                let highlightedText = wordsArray.map((word, i) => 
+                    i === index ? `<span class="highlight">${word}</span>` : word
+                ).join(" ");
+
+                document.getElementById("summaryText").innerHTML = highlightedText;
+                index++;
+            }, 300);
+        }
+
+        function pauseReading() {
+            isPaused = true;
+            speechSynthesis.cancel();
+        }
+
+        function stopReading() {
+            isPaused = false;
+            speechSynthesis.cancel();
+            document.getElementById("summaryText").innerHTML = fullSummary;
+        }
+
+        async function translateToTamil(text) {
+            try {
+                // FIX: Corrected the template literal usage
+                let response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ta`);
+                let data = await response.json();
+                document.getElementById("translatedText").innerText = data.responseData.translatedText;
+            } catch (error) {
+                console.error("Translation Error:", error);
+                document.getElementById("translatedText").innerText = "Translation failed. Try again.";
+            }
+        }
+
+        function closePage() {
+            window.parent.postMessage('closeAiSection', '*');
+        }
+    </script>
+</body>
+</html>
