@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Library - ReadMind</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    backgroundImage: {
+                        'book-cover': "url('https://images-na.ssl-images-amazon.com/images/I/71tbalAHYCL.jpg')",
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
     <style>
@@ -167,12 +178,7 @@
             </div>
         </div>
 
-        <!-- Uploaded Books -->
-        <h3 class="text-xl font-semibold mb-2">Your Uploaded Books</h3>
-        <div id="uploadedBooks" class="bg-white rounded-lg p-8 shadow-lg hidden">
-            <h3 class="text-xl font-bold mb-4">Uploaded Books</h3>
-            <div id="bookList" class="space-y-4"></div>
-        </div>
+    
     </main>
 
     <script>
