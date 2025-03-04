@@ -13,47 +13,57 @@ body {
     background-color: #ECD69F;
     color: rgba(0, 0, 0, 0.514);
 }
-
+.ab-text{
+    justify-content: center;
+    align-items: center;
+}
 .side-text {
     margin-left: 650px;
 }
+.fixed-navbar{
 
-.bookmark {
-    text-align: center;
-    padding-left: 20px;
-    font-family:Arial, Helvetica, sans-serif;
-    font-size: 20px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    
+}
+.bookmarks {
     width: 100%;
-    height: 450px;
+    height: 500px;
     background-color: #ECD69F;
     color: black;
 }
 
 .contact {
-    text-align: center;
-    width: 100%;
-    height: 150px;
-    background-color: rgba(0, 0, 0, 0.514);
-    color: white;
-}
-
-.Library {
-    font-size: 20px;
     width: 100%;
     height: 500px;
     background-color: rgba(0, 0, 0, 0.514);
     color: white;
 }
 
+.Library {
+    width: 100%;
+    height: 500px;
+    background-color: rgba(0, 0, 0, 0.514);
+    color: white;
+}
+.lb
+{
+    display: flex;
+   justify-self: flex-end;
+   align-items: center;
+   padding: 20px;
+}
+
 .about-content {
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-weight: bolder;
-    font-size: 20px;
+    font-size: 30px;
     text-align: center;
     color: rgba(0, 0, 0, 0.514);
     padding: 10px;
 }
-
 
 .text {
     font-weight: bolder;
@@ -82,8 +92,8 @@ body {
 
 /* Container Styling */
 #container {
-    width: 1200px;
-    height: 800px;
+    width: 1000px;
+    height: 700px;
     background-color: #ECD69F;
     padding: 10px;
     border-radius: 30px;
@@ -289,7 +299,7 @@ input {
     border: 2px solid black;
 }
 
-.log-in {
+.sign-up {
     background: #4CAF50;
     color: white;
     border: none;

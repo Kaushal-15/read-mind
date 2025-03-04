@@ -113,7 +113,7 @@
             <div class="flex items-center space-x-8">
                 <a href="index.html" class="hover:text-gray-600">Home</a>
                 <a href="library.html" class="hover:text-gray-600">Library</a>
-                <a href="upload.html" class="hover:text-gray-600">Upload</a>
+                <a href="books.html" class="hover:text-gray-600">Books</a>
             </div>
             
             <!-- AI Button -->
@@ -144,7 +144,7 @@
                 <img src="https://images-na.ssl-images-amazon.com/images/I/71tbalAHYCL.jpg" class="w-full h-48 object-cover rounded-t-lg">
                 <div class="p-4 border border-t-0 rounded-b-lg">
                     <h3 class="font-semibold">Atomic Habits</h3>
-                    <button onclick="redirectToUpload('sample.pdf')" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                    <button onclick="redirectToUpload('atomic.pdf')" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
                         Read Now
                     </button>
                 </div>
@@ -153,7 +153,7 @@
                 <img src="https://images-na.ssl-images-amazon.com/images/I/81y1g1g1g1L.jpg" class="w-full h-48 object-cover rounded-t-lg">
                 <div class="p-4 border border-t-0 rounded-b-lg">
                     <h3 class="font-semibold">The Power of Habit</h3>
-                    <button onclick="redirectToUpload()" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                    <button onclick="redirectToUpload('The Power of Habit.pdf')" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
                         Read Now
                     </button>
                 </div>
@@ -162,7 +162,7 @@
                 <img src="https://images-na.ssl-images-amazon.com/images/I/91b1g1g1g1L.jpg" class="w-full h-48 object-cover rounded-t-lg">
                 <div class="p-4 border border-t-0 rounded-b-lg">
                     <h3 class="font-semibold">Deep Work</h3>
-                    <button onclick="redirectToUpload()" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                    <button onclick="redirectToUpload('Deep Work.pdf')" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
                         Read Now
                     </button>
                 </div>
@@ -171,14 +171,12 @@
                 <img src="https://images-na.ssl-images-amazon.com/images/I/81g1g1g1g1L.jpg" class="w-full h-48 object-cover rounded-t-lg">
                 <div class="p-4 border border-t-0 rounded-b-lg">
                     <h3 class="font-semibold">The 7 Habits of Highly Effective People</h3>
-                    <button onclick="redirectToUpload()" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                    <button onclick="redirectToUpload('The 7 Habits of Highly Effective People.pdf')" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
                         Read Now
                     </button>
                 </div>
             </div>
         </div>
-
-    
     </main>
 
     <script>
@@ -195,13 +193,14 @@
             }
         }
 
-        // Redirect to Upload Page
-        function redirectToUpload() {
-            window.location.href = 'upload.html';
-        }
+        // Redirect to PDF Viewer Page with PDF URL
         function redirectToUpload(pdfUrl) {
-    window.location.href = `pdfviewer.html?pdf=${encodeURIComponent(pdfUrl)}`;
-}
+            if (pdfUrl) {
+                window.location.href = `pdfviewer.html?book=${encodeURIComponent(pdfUrl)}`;
+            } else {
+                window.location.href = 'upload.html';
+            }
+        }
 
         // Load Dark Mode on Page Load
         document.addEventListener('DOMContentLoaded', () => {
