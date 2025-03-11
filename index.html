@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Read Mind - Online Book Reader</title>
     <link rel="stylesheet" href="style.css">
-     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
     <style>
@@ -34,7 +34,6 @@
             position: relative;
             z-index: 1000;
         }
-        
 
         /* Sticky Navbar */
         #sticky-navbar {
@@ -76,12 +75,10 @@
             color: #f39c12;
         }
 
-        /* Sticky Navbar Links */
         #sticky-navbar nav ul li a {
             color: white;
         }
 
-        /* Auth Buttons */
         .auth-buttons {
             display: flex;
             gap: 15px;
@@ -138,24 +135,154 @@
             line-height: 1.8;
         }
 
-        /* Other Sections */
-        .Library, .bookmarks, .contact {
+        /* Library Section */
+        .library {
+            width: 100%;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 80px 20px;
+            text-align: left;
+            background-color: #ecd69f;
+        }
+
+        .library-content {
+            display: flex;
+            align-items: center;
+            max-width: 900px;
+            gap: 30px;
+        }
+
+        .library-img {
+            width: 400px;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .library-text {
+            max-width: 500px;
+        }
+
+        .library-text h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .library-text p {
+            font-size: 1.2rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .library-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .library-img {
+                width: 100%;
+            }
+        }
+
+        /* MCQ & Flash Cards Section */
+        .mcq-flash {
+            font-size: larger;
             padding: 80px 20px;
             text-align: center;
+            background: rgba(0, 0, 0, 0.514)
         }
 
-        .Library img {
+        .mcq-flash-content {
             display: flex;
-            justify-content: flex-end;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
+        .feature-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 300px;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card a {
+            display: inline-block;
+            background-color: #f9c74f;
+            color: black;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .feature-card a:hover {
+            background-color: #f39c12;
+        }
+
+        /* Bookmarks Section */
         .bookmarks {
+            padding: 80px 20px;
+            text-align: center;
             background: #f3f3f3;
         }
 
+        .track {
+            border-radius: 30px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Contact Section */
         .contact {
+            text-align: center;
+            font-weight: bold;
+            width: 100%;
+            height: auto;
             background: black;
             color: white;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: auto;
+        }
+
+        .con-img {
+            border-radius: 2.5%;
         }
     </style>
 </head>
@@ -187,7 +314,6 @@
                 <a href="login.html" class="sign-up">Log in</a>
             </div>
         </header>
-       
         
         <pre>
             Welcome to Read Mind – Your Gateway to Endless Knowledge!
@@ -197,9 +323,8 @@ Whether you're a curious learner, a passionate reader, or someone seeking inspir
 our vast collection of books across all genres is here to fuel your mind and heart.
 
 Join us on this journey of discovery, learning, and adventure. Happy Reading!
-
         </pre>
-        <img src="c.png" alt="" height="50px" width="70%">
+        <img src="c.png" alt="" height="50px" width="70%" class="con-img">
     </div>
 
     <!-- Sticky Navbar -->
@@ -234,31 +359,54 @@ Join us on this journey of discovery, learning, and adventure. Happy Reading!
     </section>
 
     <!-- Library Section -->
-    <div class="Library">
-        <img src="lb.png" alt="Library Image" width="300px" height="400px">
-        <div class="ab-text">
-            <h1>🤖 AI Summarization & Instant Answers</h1>
-            <p>AI helps summarize key book insights and provides instant answers to any questions about the content.</p>
+    <div class="library">
+        <div class="library-content">
+            <img src="lb.png" alt="Library Image" class="library-img">
+            <div class="library-text">
+                <h1>🤖 AI Summarization & Instant Answers</h1>
+                <p>AI helps summarize key book insights and provides instant answers to any questions about the content.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MCQ & Flash Cards Section -->
+    <div class="mcq-flash" id="mcq-flash">
+        <h1>🎓 MCQ & Flash Cards</h1>
+        <p>Enhance your learning with interactive quizzes and flashcards based on your reading material.</p>
+        <div class="mcq-flash-content">
+            <div class="feature-card">
+                <img src="mcq.png" alt="MCQ Image">
+                <h3>Multiple Choice Questions</h3>
+                <p>Test your knowledge with auto-generated MCQs from your books.</p>
+                
+            </div>
+            <div class="feature-card">
+                <img src="flashcards.png" alt="Flash Cards Image">
+                <h3>Flash Cards</h3>
+                <p>Memorize key concepts with interactive flash cards.</p>
+                
+            </div>
         </div>
     </div>
 
     <!-- Bookmarks Section -->
-    <div class="bookmarks">
-        <h2>📌 Track Your Reading Progress</h2>
+    <div class="bookmarks" id="bookmarks">
+        <h1>📌 Track Your Reading Progress</h1>
         <p>Save and manage bookmarks to keep track of your favorite books and reading history.</p>
+        
+        <img src="2.png" class="track" width="700px" height="400px">
     </div>
 
     <!-- Contact Section -->
-    <div class="contact">
-        <img src="1.png" alt="">
+    <div class="contact" id="contact-us">
         <h2>📬 Contact Us</h2>
         <p>Have any queries? Reach out to us for support, feedback, or suggestions.</p>
         <pre>
-            Feel free to contact us anytime in the mail and numbers below
-                Email:-readmind@gmail.com
-                Phone Number:-+0424 6966050
-                            :+90323252555
-                Abc complex,1st floor,Guindy,chennai-683055.
+        Feel free to contact us anytime in the mail and numbers below
+        Email:-readmind@gmail.com
+        Phone Number:-+0424 6966050
+                    :+90323252555
+    Abc complex,1st floor,Guindy,chennai-683055.
         </pre>
     </div>
 

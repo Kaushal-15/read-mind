@@ -87,11 +87,11 @@
         }
         #pdfViewer { 
             width: 100%; 
-            min-height: 600px; 
+            height: 600px; 
             background: #fff; 
             position: relative; 
             z-index: 11; 
-            overflow: hidden; 
+            overflow-y: auto; /* Enable vertical scrollbar */
         }
         .pdf-background {
             position: absolute;
@@ -108,6 +108,8 @@
             background: #fff !important; 
             position: relative;
             z-index: 12;
+            border-bottom: 1px solid #ddd; /* Add a separator between pages */
+            margin-bottom: 10px;
         }
         body {
             position: relative;
@@ -121,6 +123,20 @@
             position: relative;
             z-index: 5;
         }
+        #pageInfo {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        .dark #pageInfo {
+            background: rgba(0, 0, 0, 0.8);
+            color: #ecd69f;
+        }
     </style>
 </head>
 <body class="bg-[#ecd69f] min-h-screen">
@@ -131,6 +147,7 @@
             </div>
             <a href="books.html" class="text-[#333]">Books</a>
             <a href="library.html" class="text-[#333]">Library</a>
+            <a href="progress.html" class="text-[#333]">Progress</a>
             <div class="dropdown">
                 <label class="btn btn-solid-primary my-2" tabindex="0">Features</label>
                 <div class="dropdown-menu dropdown-menu-bottom-right border border-gray-10">
@@ -148,6 +165,7 @@
     <main class="container mx-auto px-4 py-8">
         <div class="bg-white rounded-lg p-8 shadow-lg relative">
             <h2 class="text-2xl font-bold mb-4">Book Viewer</h2>
+            <div id="pageInfo">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></div>
             <div class="relative">
                 <div id="pdfViewer" class="w-full">
                     <div class="pdf-background"></div>
@@ -196,6 +214,8 @@
         const aiWindowContent = document.getElementById('aiWindowContent');
         const floatingAiSection = document.getElementById('floatingAiSection');
         const aiIframe = document.getElementById('aiIframe');
+        const currentPageSpan = document.getElementById('currentPage');
+        const totalPagesSpan = document.getElementById('totalPages');
 
         let selectedX = null, selectedY = null;
         const params = new URLSearchParams(window.location.search);
@@ -203,9 +223,8 @@
         const notesKey = bookUrl ? `notes_${bookUrl}` : "savedNotes";
 
         let pdfDoc = null;
-        let pageNum = 1;
-        let pageRendering = false;
-        let pageNumPending = null;
+        let currentPage = 1;
+        let totalPages = 0;
         const scale = 1.5;
         let useCustomContextMenu = true;
         let hasSentFullText = false;
@@ -235,7 +254,9 @@
                 const loadingTask = pdfjsLib.getDocument({ url: bookUrl });
                 pdfDoc = await loadingTask.promise;
                 console.log('PDF loaded successfully. Total pages:', pdfDoc.numPages);
-                renderPage(pageNum);
+                totalPages = pdfDoc.numPages;
+                totalPagesSpan.textContent = totalPages;
+                renderAllPages();
                 fetchNotes();
             } catch (error) {
                 console.error('Error loading PDF:', error);
@@ -246,15 +267,25 @@
 
         loadPDF();
 
-        function renderPage(num) {
+        function renderAllPages() {
             if (!pdfDoc) {
-                console.error('Cannot render page: pdfDoc is not loaded.');
+                console.error('Cannot render pages: pdfDoc is not loaded.');
                 pdfViewer.innerHTML = '<p style="color: red;">PDF document not loaded.</p>';
                 return;
             }
 
-            console.log('Rendering page:', num);
-            pageRendering = true;
+            pdfViewer.innerHTML = '<div class="pdf-background"></div>';
+            pdfViewer.style.display = 'block';
+
+            for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                renderPage(pageNum);
+            }
+
+            // Update page number on scroll
+            pdfViewer.addEventListener('scroll', updateCurrentPage);
+        }
+
+        function renderPage(num) {
             pdfDoc.getPage(num).then((page) => {
                 const viewport = page.getViewport({ scale: scale });
                 const canvas = document.createElement('canvas');
@@ -263,6 +294,7 @@
                 canvas.width = viewport.width;
                 canvas.style.border = '1px solid #000';
                 canvas.style.background = '#fff';
+                canvas.dataset.pageNumber = num; // Store page number for scroll detection
 
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 context.fillStyle = '#ffffff';
@@ -273,72 +305,82 @@
                     viewport: viewport
                 };
 
-                pdfViewer.innerHTML = '<div class="pdf-background"></div>';
-                pdfViewer.style.display = 'block';
-                console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
-
                 const renderTask = page.render(renderContext);
                 renderTask.promise.then(() => {
                     console.log('Page rendered successfully:', num);
-                    pageRendering = false;
-                    if (pageNumPending !== null) {
-                        renderPage(pageNumPending);
-                        pageNumPending = null;
-                    }
+                    pdfViewer.appendChild(canvas);
+
+                    // Render text layer for text selection
+                    page.getTextContent().then((textContent) => {
+                        const textLayerDiv = document.createElement('div');
+                        textLayerDiv.className = 'textLayer';
+                        textLayerDiv.style.position = 'absolute';
+                        textLayerDiv.style.top = `${canvas.offsetTop}px`;
+                        textLayerDiv.style.left = `${canvas.offsetLeft}px`;
+                        textLayerDiv.style.width = `${canvas.width}px`;
+                        textLayerDiv.style.height = `${canvas.height}px`;
+                        pdfViewer.appendChild(textLayerDiv);
+
+                        pdfjsLib.renderTextLayer({
+                            textContent: textContent,
+                            container: textLayerDiv,
+                            viewport: viewport,
+                            textDivs: []
+                        }).promise.catch((error) => {
+                            console.error('Error rendering text layer:', error);
+                        });
+                    }).catch((error) => {
+                        console.error('Error getting text content:', error);
+                    });
                 }).catch((error) => {
                     console.error('Error rendering page:', error);
                     pdfViewer.innerHTML = `<p style="color: red;">Error rendering page: ${error.message}</p>`;
-                    pageRendering = false;
-                });
-
-                pdfViewer.appendChild(canvas);
-
-                page.getTextContent().then((textContent) => {
-                    const textLayerDiv = document.createElement('div');
-                    textLayerDiv.className = 'textLayer';
-                    textLayerDiv.style.position = 'absolute';
-                    textLayerDiv.style.top = '0';
-                    textLayerDiv.style.left = '0';
-                    textLayerDiv.style.width = `${canvas.width}px`;
-                    textLayerDiv.style.height = `${canvas.height}px`;
-                    pdfViewer.appendChild(textLayerDiv);
-
-                    pdfjsLib.renderTextLayer({
-                        textContent: textContent,
-                        container: textLayerDiv,
-                        viewport: viewport,
-                        textDivs: []
-                    }).promise.catch((error) => {
-                        console.error('Error rendering text layer:', error);
-                    });
-                }).catch((error) => {
-                    console.error('Error getting text content:', error);
                 });
             }).catch((error) => {
                 console.error('Error getting page:', error);
                 pdfViewer.innerHTML = `<p style="color: red;">Error loading page ${num}: ${error.message}</p>`;
-                pageRendering = false;
             });
-            pageNum = num;
+        }
+
+        function updateCurrentPage() {
+            const canvases = pdfViewer.getElementsByTagName('canvas');
+            let newCurrentPage = 1;
+
+            for (let i = 0; i < canvases.length; i++) {
+                const canvas = canvases[i];
+                const canvasTop = canvas.offsetTop;
+                const canvasBottom = canvasTop + canvas.height;
+                const scrollTop = pdfViewer.scrollTop + 100; // Add a small offset to account for the header
+
+                if (scrollTop >= canvasTop && scrollTop < canvasBottom) {
+                    newCurrentPage = parseInt(canvas.dataset.pageNumber);
+                    break;
+                }
+            }
+
+            currentPage = newCurrentPage;
+            currentPageSpan.textContent = currentPage;
+            console.log('Updated current page:', currentPage);
         }
 
         function goToPrevPage() {
-            if (pageNum <= 1 || pageRendering) return;
-            pageNum--;
-            if (pageRendering) {
-                pageNumPending = pageNum;
-            } else {
-                renderPage(pageNum);
-            }
+            if (currentPage <= 1) return;
+            currentPage--;
+            scrollToPage(currentPage);
         }
 
         function goToNextPage() {
-            if (!pdfDoc || pageNum >= pdfDoc.numPages || pageRendering) return;
-            pageNum++;
-            if (pageRendering) {
-                pageNumPending = pageNum;
-            } else {
-                renderPage(pageNum);
+            if (currentPage >= totalPages) return;
+            currentPage++;
+            scrollToPage(currentPage);
+        }
+
+        function scrollToPage(pageNum) {
+            const canvases = pdfViewer.getElementsByTagName('canvas');
+            if (canvases[pageNum - 1]) {
+                canvases[pageNum - 1].scrollIntoView({ behavior: 'smooth' });
+                currentPage = pageNum;
+                currentPageSpan.textContent = currentPage;
             }
         }
 
@@ -489,6 +531,8 @@
         document.querySelectorAll('.dropdown-menu a').forEach(item => {
             item.addEventListener('click', handleFeatureClick);
         });
+
+        
 
         function fetchNotes() {
             fetch('get_notes.php?bookUrl=' + encodeURIComponent(bookUrl))
